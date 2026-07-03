@@ -10,12 +10,13 @@ from pydantic import BaseModel
 
 from app import db
 from app.api import deps
+from app.api.serialize import bar_json, day_meta
 from app.config import AppConfig
 from app.marketdata.aggregate import TF_MINUTES
 from app.marketdata.calendar import CalendarUnavailable, MarketCalendar
 from app.marketdata.fetcher import Fetcher, NotTradingDay
 from app.marketdata.window import BarWindow, eod_clock
-from app.models import ET, CalendarDay, utcnow
+from app.models import ET, utcnow
 from app.providers.alpaca import AlpacaProvider
 from app.providers.base import ProviderError
 
@@ -70,17 +71,6 @@ def market_state(request: Request) -> dict:
     }
 
 
-def _day_meta(d: CalendarDay) -> dict:
-    return {
-        "day": d.day.isoformat(),
-        "half_day": d.is_half_day,
-        "session_open": int(d.session_open_utc().timestamp()),
-        "open": int(d.open_utc().timestamp()),
-        "close": int(d.close_utc().timestamp()),
-        "session_close": int(d.session_close_utc().timestamp()),
-    }
-
-
 @router.get("/bars")
 def get_bars(
     symbol: str, day: date, request: Request, tf: str = "5m", lookback: int = 3
@@ -116,19 +106,8 @@ def get_bars(
         "symbol": symbol,
         "tf": tf,
         "day": day.isoformat(),
-        "bars": [
-            {
-                "t": int(b.ts.timestamp()),
-                "o": b.open,
-                "h": b.high,
-                "l": b.low,
-                "c": b.close,
-                "v": b.volume,
-                "s": b.session,
-            }
-            for b in bars
-        ],
-        "days": [_day_meta(d) for d in window.days],
+        "bars": [bar_json(b) for b in bars],
+        "days": [day_meta(d) for d in window.days],
     }
 
 

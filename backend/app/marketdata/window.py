@@ -21,10 +21,11 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from typing import Protocol
 
+from app.analysis.indicators import et_minutes, rvol_at, sma, vwap_series
 from app.marketdata import store
 from app.marketdata.aggregate import TF_MINUTES, aggregate_bars
-from app.marketdata.calendar import MarketCalendar
-from app.models import Bar, CalendarDay, DailyBar
+from app.marketdata.calendar import CalendarUnavailable, MarketCalendar
+from app.models import Bar, CalendarDay, DailyBar, et_date
 
 BAR_SECONDS = 60
 
@@ -42,6 +43,17 @@ class FixedClock:
 
     def now(self) -> datetime:
         return self.at
+
+
+@dataclass
+class ReplayClock:
+    """The single source of truth for a replay session (doc §8). Advanced
+    only by the session step pipeline — whole minutes at a time."""
+
+    current: datetime
+
+    def now(self) -> datetime:
+        return self.current
 
 
 def eod_clock(cal_day: CalendarDay) -> FixedClock:
@@ -100,3 +112,34 @@ class BarWindow:
             self._conn, symbol, end=self.anchor.day - timedelta(days=1)
         )
         return rows[-n:]
+
+    # ------------------------------------------------- clock-aware indicators
+
+    def vwap(self, symbol: str) -> list[tuple[datetime, float]]:
+        """Per-day RTH-anchored VWAP over the visible window."""
+        return vwap_series(self.bars_1m(symbol))
+
+    def rvol(self, symbol: str, baseline_days: int = 20) -> float | None:
+        """Cumulative time-of-day RVOL of the anchor day at the clock, against
+        the prior `baseline_days` full sessions (always complete, so reading
+        them whole leaks nothing)."""
+        cutoff = self.cutoff()
+        if cutoff < self.anchor.session_open_utc():
+            return None
+        at = et_minutes(min(cutoff, self.anchor.session_close_utc()))
+        today = [b for b in self.bars_1m(symbol) if et_date(b.ts) == self.anchor.day]
+        try:
+            prior = self._calendar.trading_days_back(self.anchor.day, baseline_days + 1)[:-1]
+        except CalendarUnavailable:
+            return None
+        baseline = [
+            store.get_bars_1m_raw(
+                self._conn, symbol, cd.session_open_utc(), cd.session_close_utc()
+            )
+            for cd in prior
+        ]
+        return rvol_at(today, baseline, at)
+
+    def sma200(self, symbol: str) -> float | None:
+        """SMA200 of prior daily closes — daily trend context (doc §6.4)."""
+        return sma([b.close for b in self.daily(symbol, 200)], 200)

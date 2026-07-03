@@ -172,6 +172,29 @@ class FakeProvider:
         return KeyValidation(data_ok=True, trading_ok=True)
 
 
+def seed_days(conn, symbol: str, days: Sequence[CalendarDay], base: float = 500.0) -> None:
+    """Insert calendar + tagged 1m bars + dailies for whole COMPLETE days —
+    the starting state for window/session tests."""
+    from datetime import timedelta
+
+    from app.marketdata import store
+    from app.marketdata.calendar import tag_session
+    from app.models import Bar
+
+    provider = FakeProvider(days, base_price=base)
+    store.upsert_calendar(conn, days)
+    for cd in days:
+        raw = provider.get_bars_1m([symbol], cd.session_open_utc(), cd.session_close_utc())[symbol]
+        bars = [
+            Bar(symbol, rb.ts, rb.open, rb.high, rb.low, rb.close, rb.volume, tag_session(rb.ts, cd))
+            for rb in raw
+        ]
+        store.upsert_bars_1m(conn, bars)
+        store.mark_day_cached(conn, symbol, cd.day, cd.session_close_utc() + timedelta(hours=1))
+    dailies = provider.get_bars_daily([symbol], days[0].day, days[-1].day)[symbol]
+    store.upsert_bars_daily(conn, dailies)
+
+
 def make_daily_series(
     symbol: str, days: Sequence[CalendarDay], close: float
 ) -> list[DailyBar]:

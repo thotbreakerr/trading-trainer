@@ -42,6 +42,38 @@ export interface SymbolsResponse {
   symbols: SymbolStat[]
 }
 
+export interface Point {
+  t: number
+  v: number
+}
+
+export interface SessionInfo {
+  id: string
+  mode: string
+  symbols: string[]
+  day: string
+  clock: number
+  done: boolean
+  start_at: number
+  end_at: number
+}
+
+export interface StepResponse {
+  clock: number
+  cutoff: number
+  done: boolean
+  events: unknown[]
+  new_bars: Record<string, ApiBar[]>
+}
+
+export interface SessionBarsResponse extends BarsResponse {
+  clock: number
+  done: boolean
+  overlays: { vwap: Point[]; ema9: Point[]; ema20: Point[] }
+  rvol: number | null
+  sma200: number | null
+}
+
 export interface KeysStatus {
   present: boolean
 }

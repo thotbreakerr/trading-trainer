@@ -2,6 +2,9 @@ import type {
   BackfillProgressInfo,
   BarsResponse,
   KeysStatus,
+  SessionBarsResponse,
+  SessionInfo,
+  StepResponse,
   SymbolsResponse,
   Timeframe,
 } from './types'
@@ -43,4 +46,12 @@ export const api = {
     ),
   startBackfill: () => postJson<{ started: boolean }>('/api/backfill'),
   backfillProgress: () => getJson<BackfillProgressInfo>('/api/backfill/progress'),
+  createSession: (symbol: string, day: string) =>
+    postJson<SessionInfo>('/api/sessions', { symbol, day }),
+  stepSession: (id: string, bars: number) =>
+    postJson<StepResponse>(`/api/sessions/${id}/step?bars=${bars}`),
+  sessionBars: (id: string, tf: Timeframe) =>
+    getJson<SessionBarsResponse>(`/api/sessions/${id}/bars?tf=${tf}`),
+  restartSession: (id: string) => postJson<SessionInfo>(`/api/sessions/${id}/restart`),
+  deleteSession: (id: string) => fetch(`/api/sessions/${id}`, { method: 'DELETE' }),
 }

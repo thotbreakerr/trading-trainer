@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app import db
-from app.api import data, deps, system
+from app.api import data, deps, sessions_api, system
 from app.config import load_app_config, load_creds
 from app.marketdata.calendar import MarketCalendar
 from app.models import ET, utcnow
@@ -45,6 +45,7 @@ def create_app() -> FastAPI:
     deps.install_provider(app, load_creds())
     app.include_router(system.router, prefix="/api", tags=["system"])
     app.include_router(data.router, prefix="/api", tags=["data"])
+    app.include_router(sessions_api.router, prefix="/api", tags=["sessions"])
     return app
 
 

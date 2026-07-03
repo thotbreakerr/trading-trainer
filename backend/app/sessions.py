@@ -1,0 +1,142 @@
+"""Replay sessions: registry + the step pipeline.
+
+This pipeline is the code path Market Day will later drive too (doc §11:
+"delayed-live is just the replay engine fed by a poller") — the sim and
+callout engines plug into the step loop in later phases.
+
+Sessions hold NO database connection: sqlite connections are thread-local
+and FastAPI serves each request on an arbitrary threadpool thread, so
+endpoints construct a per-request BarWindow bound to the session's clock.
+
+Visibility recap (doc §8): the clock starts at the anchor day's open, so the
+cutoff sits one bar earlier — prior days and the anchor's pre-market are
+context, the anchor's RTH is hidden and reveals bar by bar. Whole 1-minute
+bars only; step = +60s per bar.
+"""
+from __future__ import annotations
+
+import threading
+import uuid
+from dataclasses import dataclass, field
+from datetime import date, datetime, timedelta
+
+from app.marketdata.calendar import MarketCalendar
+from app.marketdata.window import BAR_SECONDS, BarWindow, ReplayClock
+from app.models import Bar
+
+MAX_STEP_BARS = 60
+
+
+class SessionNotFound(KeyError):
+    pass
+
+
+@dataclass
+class Session:
+    id: str
+    mode: str  # 'replay' | 'review'  (marketday joins later)
+    symbols: list[str]
+    day: date
+    lookback_days: int
+    clock: ReplayClock
+    start_at: datetime
+    end_at: datetime  # anchor session close — the step loop stops here
+    last_seen: dict[str, datetime]  # per-symbol high-water mark (a TIME, not a bar)
+    lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+
+    @property
+    def done(self) -> bool:
+        return self.clock.current >= self.end_at
+
+
+@dataclass
+class StepResult:
+    clock: datetime
+    cutoff: datetime
+    done: bool
+    new_bars: dict[str, list[Bar]]
+    events: list[dict]  # sim fills / callouts in later phases
+
+
+_SESSIONS: dict[str, Session] = {}
+_REGISTRY_LOCK = threading.Lock()
+
+
+def create_session(
+    calendar: MarketCalendar,
+    symbols: list[str],
+    day: date,
+    *,
+    lookback_days: int = 3,
+    start: str = "open",  # 'open' | 'session_open'
+    start_at: datetime | None = None,  # review mode: jump straight to a moment
+    mode: str = "replay",
+) -> Session:
+    cal_day = calendar.day(day)
+    if cal_day is None:
+        raise ValueError(f"{day} is not a trading day")
+    if start_at is None:
+        start_at = cal_day.open_utc() if start == "open" else cal_day.session_open_utc()
+    initial_cutoff = start_at - timedelta(seconds=BAR_SECONDS)
+    session = Session(
+        id=uuid.uuid4().hex[:12],
+        mode=mode,
+        symbols=[s.upper() for s in symbols],
+        day=day,
+        lookback_days=lookback_days,
+        clock=ReplayClock(current=start_at),
+        start_at=start_at,
+        end_at=cal_day.session_close_utc(),
+        last_seen={s.upper(): initial_cutoff for s in symbols},
+    )
+    with _REGISTRY_LOCK:
+        _SESSIONS[session.id] = session
+    return session
+
+
+def get_session(session_id: str) -> Session:
+    with _REGISTRY_LOCK:
+        session = _SESSIONS.get(session_id)
+    if session is None:
+        raise SessionNotFound(session_id)
+    return session
+
+
+def delete_session(session_id: str) -> None:
+    with _REGISTRY_LOCK:
+        _SESSIONS.pop(session_id, None)
+
+
+def step_session(session: Session, window: BarWindow, bars: int = 1) -> StepResult:
+    """Advance the clock N whole bars and reveal exactly what became visible.
+    Deterministic: same day + same steps => identical bar streams."""
+    bars = max(1, min(bars, MAX_STEP_BARS))
+    with session.lock:
+        if not session.done:
+            session.clock.current = min(
+                session.clock.current + timedelta(seconds=BAR_SECONDS * bars),
+                session.end_at,
+            )
+        cutoff = window.cutoff()
+        new_bars: dict[str, list[Bar]] = {}
+        for symbol in session.symbols:
+            since = session.last_seen[symbol] + timedelta(seconds=BAR_SECONDS)
+            revealed = window.bars_1m(symbol, since=since) if since <= cutoff else []
+            new_bars[symbol] = revealed
+            session.last_seen[symbol] = max(cutoff, session.last_seen[symbol])
+        events: list[dict] = []  # _on_clock hook: sim + callouts arrive later
+        return StepResult(
+            clock=session.clock.current,
+            cutoff=cutoff,
+            done=session.done,
+            new_bars=new_bars,
+            events=events,
+        )
+
+
+def restart_session(session: Session) -> None:
+    """Practice rule (doc §8): no rewind — restart the day, fresh."""
+    with session.lock:
+        session.clock.current = session.start_at
+        initial_cutoff = session.start_at - timedelta(seconds=BAR_SECONDS)
+        session.last_seen = {s: initial_cutoff for s in session.symbols}

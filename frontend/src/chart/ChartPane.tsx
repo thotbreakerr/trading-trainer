@@ -4,6 +4,7 @@ import {
   ColorType,
   CrosshairMode,
   HistogramSeries,
+  LineSeries,
   createChart,
   type IChartApi,
   type ISeriesApi,
@@ -11,8 +12,20 @@ import {
   type Time,
   type UTCTimestamp,
 } from 'lightweight-charts'
-import type { ApiBar, DayMeta } from '../lib/types'
+import type { ApiBar, DayMeta, Point } from '../lib/types'
 import { SessionShading } from './sessionShading'
+
+export interface Overlays {
+  vwap: Point[]
+  ema9: Point[]
+  ema20: Point[]
+}
+
+const OVERLAY_STYLE: Record<keyof Overlays, { color: string }> = {
+  vwap: { color: '#f0b90b' },
+  ema9: { color: '#29b6f6' },
+  ema20: { color: '#ab47bc' },
+}
 
 // Display convention (doc §14): times shown in CT.
 const ctTime = new Intl.DateTimeFormat('en-US', {
@@ -40,17 +53,27 @@ export function ChartPane({
   bars,
   days,
   fitKey,
+  overlays,
+  follow = false,
 }: {
   bars: ApiBar[]
   days: DayMeta[]
   /** When this changes (symbol/day switch), the view resets to the anchor
    * day; timeframe changes keep the current position (doc §15 checklist). */
   fitKey: string
+  overlays?: Overlays
+  /** Keep the latest bar in view as new bars arrive (replay while playing). */
+  follow?: boolean
 }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const candlesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const volumeRef = useRef<ISeriesApi<'Histogram'> | null>(null)
+  const overlayRefs = useRef<Record<keyof Overlays, ISeriesApi<'Line'> | null>>({
+    vwap: null,
+    ema9: null,
+    ema20: null,
+  })
   const shadingRef = useRef<SessionShading | null>(null)
   const lastFitKey = useRef<string>('')
 
@@ -95,6 +118,15 @@ export function ChartPane({
       { priceFormat: { type: 'volume' }, priceScaleId: 'right' },
       1, // its own pane below the candles
     )
+    for (const key of Object.keys(OVERLAY_STYLE) as (keyof Overlays)[]) {
+      overlayRefs.current[key] = chart.addSeries(LineSeries, {
+        color: OVERLAY_STYLE[key].color,
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      })
+    }
     const shading = new SessionShading()
     candles.attachPrimitive(shading as unknown as ISeriesPrimitive<Time>)
     // Volume pane gets ~1/5 of the height; stretch factors are relative so
@@ -140,9 +172,15 @@ export function ChartPane({
       })),
     )
     shadingRef.current?.setTimes(bars.map((b) => ({ t: b.t, s: b.s })))
+    for (const key of Object.keys(OVERLAY_STYLE) as (keyof Overlays)[]) {
+      overlayRefs.current[key]?.setData(
+        (overlays?.[key] ?? []).map((p) => ({ time: p.t as UTCTimestamp, value: p.v })),
+      )
+    }
 
     if (keepRange) {
       chart.timeScale().setVisibleRange(keepRange) // tf switch: hold position
+      if (follow) chart.timeScale().scrollToRealTime()
     } else if (bars.length > 0) {
       const anchor = days[days.length - 1]
       lastFitKey.current = fitKey
@@ -155,7 +193,7 @@ export function ChartPane({
         chart.timeScale().fitContent()
       }
     }
-  }, [bars, days, fitKey])
+  }, [bars, days, fitKey, overlays, follow])
 
   return (
     <div className="chart-host">
