@@ -1,0 +1,17 @@
+# secrets
+.env
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# node
+node_modules/
+dist/
+
+# local databases (default lives in %LOCALAPPDATA%, but never commit one)
+*.db
+*.db-wal
+*.db-shm

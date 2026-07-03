@@ -1,0 +1,22 @@
+# Day Trading Trainer — app configuration.
+# Human-edited YAML, re-read on restart. There is no settings screen by design.
+
+watchlist: [SPY, QQQ, AAPL, NVDA, TSLA, MSFT, AMD, META]
+
+# Paper account (doc §9)
+starting_balance: 30000.0
+intraday_leverage: 4.0
+default_risk_pct: 1.0        # sizing calculator: % of equity risked per trade
+
+# Data (doc §5, §11)
+backfill_days: 30            # first-run backfill: trading days before today
+rvol_baseline_days: 20       # lookback window for relative-volume baseline
+poll_interval_seconds: 60    # Market Day REST polling cadence
+
+# Database location. Default lives OUTSIDE OneDrive (SQLite WAL + cloud sync
+# is a corruption risk): %LOCALAPPDATA%\trading-trainer\trainer.db
+# Set an absolute path here to override, or leave null for the default.
+db_path: null
+
+# Escape hatches (doc §12) — config-only, no UI
+allow_untrained_trading: false

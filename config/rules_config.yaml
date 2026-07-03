@@ -1,0 +1,36 @@
+# Rules engine configuration (doc §10). All detector thresholds and grader
+# parameters live here — consumed by the detectors/grader from Phase 6 on.
+
+detectors:
+  gap:
+    min_gap_pct: 2.0             # |open vs prior close| to qualify as a gap
+  opening_range:
+    minutes: 15                  # OR window after the bell
+    min_rvol: 1.5                # confluence requirement for a quality ORB
+  vwap:
+    reclaim_hold_bars: 3         # bars price must hold beyond VWAP to confirm
+  level_break:
+    min_rvol: 1.2                # PDH/PDL / pre-market H/L break confirmation
+  rvol_spike:
+    threshold: 2.0               # cumulative RVOL considered a spike
+  trend:
+    fast_ema: 9
+    slow_ema: 20
+
+grading:
+  min_rr: 2.0                    # checklist item: reward-to-risk at entry
+  # grade = checklist pass count: Textbook / Solid / Risky / Reckless
+  # "Textbook" additionally requires RVOL confluence (chop mitigation, doc §10)
+
+callouts:
+  default_watch_minutes: 10      # per-setup override allowed below
+  watch_minutes: {}              # e.g. opening_range_breakout: 15
+
+unlocks:
+  # setup_type -> curriculum module that unlocks it (doc §12)
+  gap_context: 7
+  opening_range_breakout: 8
+  vwap_reclaim: 8
+  vwap_pullback: 8
+  level_break: 8
+  gap_fill: 8
