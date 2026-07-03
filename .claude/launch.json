@@ -1,0 +1,31 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "C:\\Users\\river\\OneDrive\\Desktop\\Projects\\trading-trainer\\backend\\.venv\\Scripts\\python.exe",
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "--app-dir",
+        "C:\\Users\\river\\OneDrive\\Desktop\\Projects\\trading-trainer\\backend",
+        "app.main:app",
+        "--port",
+        "8000"
+      ],
+      "port": 8000
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": [
+        "C:\\Users\\river\\OneDrive\\Desktop\\Projects\\trading-trainer\\frontend\\node_modules\\vite\\bin\\vite.js",
+        "C:\\Users\\river\\OneDrive\\Desktop\\Projects\\trading-trainer\\frontend",
+        "--port",
+        "5173",
+        "--strictPort"
+      ],
+      "port": 5173
+    }
+  ]
+}

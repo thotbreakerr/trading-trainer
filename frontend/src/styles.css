@@ -1,0 +1,132 @@
+/* Dark theme (doc §15) — variables first, components after. */
+:root {
+  --bg: #131722;
+  --panel: #1e222d;
+  --panel-2: #232838;
+  --border: #2a2e39;
+  --text: #d1d4dc;
+  --muted: #787b86;
+  --accent: #2962ff;
+  --up: #26a69a;
+  --down: #ef5350;
+  --warn: #ff9800;
+  font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font-size: 14px; }
+button { font: inherit; }
+a { color: var(--accent); }
+
+/* ---------------------------------------------------------------- shell */
+.app { display: grid; grid-template-rows: auto auto 1fr; height: 100%; }
+
+.topbar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 8px 16px; background: var(--panel); border-bottom: 1px solid var(--border);
+}
+.topbar .title { font-weight: 700; letter-spacing: 0.3px; }
+.topbar .spacer { flex: 1; }
+.topbar .equity { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.state-chip {
+  padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); color: var(--muted); text-transform: uppercase;
+}
+.state-chip.open { color: var(--up); border-color: var(--up); }
+.state-chip.pre { color: var(--accent); border-color: var(--accent); }
+.state-chip.post { color: var(--warn); border-color: var(--warn); }
+
+.tabnav { display: flex; gap: 4px; background: var(--panel); padding: 0 12px; border-bottom: 1px solid var(--border); }
+.tabnav button {
+  background: none; border: none; color: var(--muted); padding: 10px 16px;
+  cursor: pointer; border-bottom: 2px solid transparent; font-weight: 600;
+}
+.tabnav button:hover { color: var(--text); }
+.tabnav button.active { color: var(--text); border-bottom-color: var(--accent); }
+
+main { min-height: 0; overflow: hidden; }
+
+/* --------------------------------------------------------------- market */
+.market-layout { display: grid; grid-template-columns: 230px 1fr; height: 100%; min-height: 0; }
+
+.rail { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; }
+.rail-item {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 8px;
+  width: 100%; text-align: left; padding: 10px 12px; cursor: pointer;
+  background: none; border: none; border-bottom: 1px solid var(--border); color: var(--text);
+}
+.rail-item:hover { background: var(--panel-2); }
+.rail-item.selected { background: var(--panel-2); box-shadow: inset 3px 0 0 var(--accent); }
+.rail-item .sym { font-weight: 700; }
+.rail-item .px { font-variant-numeric: tabular-nums; text-align: right; }
+.rail-item .sub { color: var(--muted); font-size: 12px; }
+.rail-item .chg { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; }
+.chg.up { color: var(--up); }
+.chg.down { color: var(--down); }
+
+.chart-area { display: grid; grid-template-rows: auto 1fr; min-width: 0; min-height: 0; }
+.chart-header {
+  display: flex; align-items: center; gap: 12px; padding: 8px 14px;
+  border-bottom: 1px solid var(--border); background: var(--panel);
+}
+.chart-header .symbol { font-size: 18px; font-weight: 700; }
+.chart-header .banner { color: var(--warn); font-size: 13px; }
+.chart-host { position: relative; min-height: 0; }
+.chart-host > div { position: absolute; inset: 0; }
+.chart-empty { display: grid; place-items: center; height: 100%; color: var(--muted); }
+
+.tf-switcher { display: flex; gap: 2px; margin-left: auto; }
+.tf-switcher button {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  padding: 4px 10px; cursor: pointer; border-radius: 4px; font-weight: 600; font-size: 12px;
+}
+.tf-switcher button.active { color: var(--text); border-color: var(--accent); background: var(--panel-2); }
+
+/* ------------------------------------------------------------ first run */
+.boot { display: grid; place-items: center; height: 100%; color: var(--muted); }
+.boot.error { color: var(--down); padding: 24px; text-align: center; }
+
+.firstrun { display: grid; place-items: center; height: 100vh; padding: 24px; }
+.card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 28px; width: min(460px, 92vw);
+}
+.card h1 { margin: 0 0 6px; font-size: 20px; }
+.card p { color: var(--muted); line-height: 1.5; }
+.card label { display: block; margin: 14px 0 4px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.card input {
+  width: 100%; padding: 9px 10px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font-family: ui-monospace, monospace;
+}
+.card input:focus { outline: none; border-color: var(--accent); }
+.card .actions { margin-top: 20px; display: flex; align-items: center; gap: 12px; }
+.card .error-box {
+  margin-top: 14px; padding: 10px 12px; border-radius: 6px; font-size: 13px;
+  background: rgba(239, 83, 80, 0.1); border: 1px solid var(--down); color: var(--down);
+}
+.btn-primary {
+  background: var(--accent); color: white; border: none; padding: 9px 18px;
+  border-radius: 6px; font-weight: 600; cursor: pointer;
+}
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+.progress-track { height: 8px; border-radius: 4px; background: var(--bg); margin: 18px 0 8px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); transition: width 300ms; }
+.progress-note { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.warn-list { margin-top: 12px; color: var(--warn); font-size: 12px; }
+
+/* ----------------------------------------------------------------- stubs */
+.stub { padding: 32px; max-width: 720px; }
+.stub h2 { margin-top: 0; }
+.module-list { display: grid; gap: 8px; margin-top: 18px; }
+.module-row {
+  display: flex; gap: 12px; align-items: center; background: var(--panel);
+  border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; color: var(--muted);
+}
+.module-row .num {
+  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--panel-2); font-size: 12px; font-weight: 700;
+}
+.module-row .lock { margin-left: auto; font-size: 12px; }

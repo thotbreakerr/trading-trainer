@@ -1,0 +1,21 @@
+import type { Timeframe } from '../lib/types'
+
+const TFS: Timeframe[] = ['1m', '5m', '15m', '1h']
+
+export function TimeframeSwitcher({
+  tf,
+  onChange,
+}: {
+  tf: Timeframe
+  onChange: (tf: Timeframe) => void
+}) {
+  return (
+    <div className="tf-switcher">
+      {TFS.map((t) => (
+        <button key={t} className={t === tf ? 'active' : ''} onClick={() => onChange(t)}>
+          {t}
+        </button>
+      ))}
+    </div>
+  )
+}
