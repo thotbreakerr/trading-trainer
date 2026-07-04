@@ -4,6 +4,7 @@ import type {
   BarsResponse,
   BriefingData,
   CompleteResponse,
+  JournalTrade,
   KeysStatus,
   LessonDetail,
   LessonListItem,
@@ -18,6 +19,7 @@ import type {
   StepResponse,
   SymbolsResponse,
   Timeframe,
+  TrajectoryData,
 } from './types'
 
 async function errorText(r: Response): Promise<string> {
@@ -84,6 +86,10 @@ export const api = {
   sizing: (body: { equity: number; entry: number; stop: number; risk_pct?: number }) =>
     postJson<SizingResult>('/api/sizing', body),
   marketDayState: () => getJson<MarketDayState>('/api/marketday/state'),
+  journalTrades: (mode?: string) =>
+    getJson<{ trades: JournalTrade[] }>(`/api/journal/trades${mode ? `?mode=${mode}` : ''}`),
+  journalStats: (mode?: string) =>
+    getJson<TrajectoryData>(`/api/journal/stats${mode ? `?mode=${mode}` : ''}`),
   actOnCallout: (id: string) =>
     postJson<{ orders: number[]; qty: number; grade: unknown }>(
       `/api/marketday/callouts/${id}/act`, {},

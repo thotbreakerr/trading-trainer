@@ -76,6 +76,7 @@ class Trade:
     exit_reason: str | None = None  # target | stop | manual | eod
     r_multiple: float | None = None
     setup_id: int | None = None
+    grade: str | None = None  # entry grade at decision time (doc §10)
 
     @property
     def closed(self) -> bool:
@@ -111,6 +112,8 @@ class SimEngine:
     positions: dict[str, Position] = field(default_factory=dict)
     trades: list[Trade] = field(default_factory=list)
     last_close: dict[str, float] = field(default_factory=dict)
+    # entry grade parked at placement, claimed by the entry fill (per symbol)
+    pending_grades: dict[str, str] = field(default_factory=dict)
     _ids: itertools.count = field(default_factory=lambda: itertools.count(1))
     _bracket_ids: itertools.count = field(default_factory=lambda: itertools.count(1))
     _eod_warned: bool = False
@@ -374,6 +377,7 @@ class SimEngine:
                 direction="long" if signed > 0 else "short", qty=order.qty,
                 entry_ts=bar.ts, entry_price=price, stop_price=initial_stop,
                 setup_id=order.setup_id,
+                grade=self.pending_grades.pop(order.symbol, None),
             )
         )
         detail = f"{order.side} {order.qty} {order.symbol} @ {price:.2f}"

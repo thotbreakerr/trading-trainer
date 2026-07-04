@@ -287,6 +287,21 @@ export interface RecapData {
   trajectory: TrajectoryData
 }
 
+export interface JournalTrade {
+  mode: 'practice' | 'marketday'
+  day: string
+  symbol: string
+  direction: 'long' | 'short'
+  qty: number
+  entry_et: string
+  entry_price: number
+  exit_price: number | null
+  exit_reason: string | null
+  r_multiple: number | null
+  grade: string | null
+  review: { symbol: string; day: string; start_at: number }
+}
+
 export type LessonStatus = 'available' | 'locked' | 'complete' | 'unavailable'
 
 export interface LessonListItem {

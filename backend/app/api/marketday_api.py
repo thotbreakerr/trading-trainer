@@ -123,6 +123,7 @@ def act_on_callout(callout_id: str, request: Request, body: ActIn | None = None)
     except SizingError as e:
         raise HTTPException(status_code=400, detail=str(e))
     with session.lock:
+        sim.pending_grades[sig.symbol] = user_grade.tier  # -> journal row
         orders, events = sim.place_bracket(
             clock, sig.symbol, "buy" if sig.direction == "long" else "sell", qty,
             stop_price=sig.stop, target_price=sig.target,

@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app import db
-from app.api import data, deps, lessons_api, marketday_api, sessions_api, system
+from app.api import data, deps, journal_api, lessons_api, marketday_api, sessions_api, system
 from app.config import PROJECT_ROOT, load_app_config, load_creds, load_rules_config
 from app.lessons.loader import load_lessons, validate_demo_days
 from app.marketday.poller import MarketDayPoller
@@ -82,6 +82,7 @@ def create_app() -> FastAPI:
     app.include_router(sessions_api.router, prefix="/api", tags=["sessions"])
     app.include_router(lessons_api.router, prefix="/api", tags=["lessons"])
     app.include_router(marketday_api.router, prefix="/api", tags=["marketday"])
+    app.include_router(journal_api.router, prefix="/api", tags=["journal"])
     return app
 
 

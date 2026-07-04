@@ -306,6 +306,12 @@ main { min-height: 0; overflow: hidden; }
 }
 .stat-card strong { font-size: 18px; font-variant-numeric: tabular-nums; }
 
+/* ---------------------------------------------------------------- journal */
+.journal h3 { margin: 22px 0 10px; }
+.traj-chart { width: 100%; max-width: 680px; height: auto; display: block; }
+.traj-label { fill: var(--muted); font-size: 10px; font-family: inherit; }
+.traj-zero { stroke: var(--border); stroke-dasharray: 3 3; }
+
 /* ---------------------------------------------------------------- lessons */
 .lesson-takeover {
   position: fixed; inset: 0; z-index: 40; background: var(--bg);

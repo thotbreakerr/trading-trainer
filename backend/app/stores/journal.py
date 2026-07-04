@@ -14,8 +14,8 @@ def insert_closed_trade(conn: sqlite3.Connection, mode: str, day: date, trade: T
     assert trade.closed, "journal only records closed trades"
     cur = conn.execute(
         "INSERT INTO trades (mode, day, symbol, direction, qty, entry_ts, entry_price,"
-        " exit_ts, exit_price, exit_reason, stop_price, r_multiple, setup_id)"
-        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        " exit_ts, exit_price, exit_reason, stop_price, r_multiple, setup_id, grade)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             mode,
             day.isoformat(),
@@ -30,6 +30,7 @@ def insert_closed_trade(conn: sqlite3.Connection, mode: str, day: date, trade: T
             trade.stop_price,
             trade.r_multiple,
             trade.setup_id,
+            trade.grade,
         ),
     )
     return int(cur.lastrowid)

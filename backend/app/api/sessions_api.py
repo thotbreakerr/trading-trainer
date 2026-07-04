@@ -239,6 +239,8 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
                     "long" if body.side == "buy" else "short",
                     entry_ref, body.stop_price, body.target_price,
                 )
+                if grade is not None:
+                    sim.pending_grades[symbol] = grade.tier  # -> journal row
         else:
             if body.qty is None:
                 raise HTTPException(status_code=400, detail="qty required for non-bracket orders")

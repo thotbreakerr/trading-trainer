@@ -289,6 +289,16 @@ def test_second_entry_rejected_while_position_open():
     assert "one position per symbol" in events[0].detail
 
 
+def test_pending_grade_lands_on_the_trade():
+    sim = engine()
+    prime(sim, 100.0)
+    sim.pending_grades["SPY"] = "Solid"
+    sim.place_bracket(ts("09:31"), "SPY", "buy", 10, stop_price=99.0, target_price=103.0)
+    sim.on_bar(bar("09:31", 100.0, 100.4, 99.8, 100.2))
+    assert sim.trades[-1].grade == "Solid"
+    assert sim.pending_grades == {}  # claimed exactly once
+
+
 def test_second_entry_rejected_while_first_still_working():
     sim = engine()
     prime(sim, 100.0)
