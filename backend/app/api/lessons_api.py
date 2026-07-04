@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from app import sessions
 from app.api import deps
+from app.grading.grader import tier_at_least
 from app.lessons.loader import STATUS_OK, LessonModule, LessonStep
 from app.marketdata.calendar import CalendarUnavailable
 from app.models import et_clock_to_utc
@@ -70,6 +71,7 @@ def _step_json(step: LessonStep, completed: bool) -> dict:
     if step.type in ("replay", "practice"):
         data["symbol"] = step.symbol
         data["date"] = step.day.isoformat() if step.day else None
+        data["require_grade"] = step.require_grade
         data["pauses"] = [
             {
                 "at": p["at"],
@@ -130,7 +132,7 @@ def get_lesson(module_number: int, request: Request) -> dict:
 
 class CompleteIn(BaseModel):
     answer: int | None = None  # quiz choice index
-    grade: str | None = None  # practice grade (used from the rules phase on)
+    session_id: str | None = None  # graded practice: the lesson session that earned it
 
 
 @router.post("/lessons/{module_number}/steps/{step_index}/complete")
@@ -160,9 +162,32 @@ def complete_step(
         progress.mark_step(conn, mod.module, step_index)
         return {"completed": True, "correct": True, "explain": choice["explain"]}
 
-    grade = body.grade if body else None
+    grade: str | None = None
+    if step.type == "practice" and step.require_grade:
+        # The grade lives on the SESSION, computed server-side at order
+        # placement — the client can't claim it (doc §12: entry grade ≥ Solid).
+        if body is None or not body.session_id:
+            raise HTTPException(
+                status_code=409,
+                detail=f"this practice requires an entry graded {step.require_grade} "
+                "or better — trade it in the practice session first",
+            )
+        try:
+            practice_session = sessions.get_session(body.session_id)
+        except sessions.SessionNotFound:
+            raise HTTPException(status_code=404, detail="practice session not found")
+        ctx = practice_session.lesson_ctx
+        if ctx is None or ctx.module != mod.module or ctx.step != step_index:
+            raise HTTPException(status_code=409, detail="session belongs to a different step")
+        if ctx.best_grade is None or not tier_at_least(ctx.best_grade, step.require_grade):
+            raise HTTPException(
+                status_code=409,
+                detail=f"best entry so far: {ctx.best_grade or 'none'} — needs "
+                f"{step.require_grade} or better (restart the day and try again)",
+            )
+        grade = ctx.best_grade
     progress.mark_step(conn, mod.module, step_index, practice_grade=grade)
-    return {"completed": True}
+    return {"completed": True, "grade": grade}
 
 
 @router.post("/lessons/{module_number}/steps/{step_index}/session")
@@ -191,6 +216,11 @@ def lesson_session(module_number: int, step_index: int, request: Request) -> dic
             start=step.start,
             mode="lesson",
             sim=SimEngine(cfg.starting_balance, cfg.intraday_leverage),
+            lesson_ctx=sessions.LessonCtx(
+                module=mod.module,
+                step=step_index,
+                require_grade=step.require_grade,
+            ),
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

@@ -54,20 +54,6 @@ export function LearnTab() {
             </button>
           )
         })}
-        {[8, 9, 10].map((n) => (
-          <div key={n} className="module-row">
-            <span className="num">{n}</span>
-            <span className="module-info">
-              <span className="module-title">
-                {n === 8 ? 'Core setups' : n === 9 ? 'Risk management' : 'Trade planning, journaling, psychology'}
-              </span>
-              <span className="module-summary">Arrives with the rules engine build phase.</span>
-            </span>
-            <span className="module-meta">
-              <span className="lock">🔒 Locked</span>
-            </span>
-          </div>
-        ))}
       </div>
     </div>
   )

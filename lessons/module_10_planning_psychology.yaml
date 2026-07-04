@@ -1,0 +1,133 @@
+# Module 10 — Trade planning, journaling, psychology
+# Read-first module (doc §7) — the habits that make modules 1-9 survivable.
+module: 10
+title: Trade planning, journaling, psychology
+summary: Plan before entry, review after exit, and the three demons — FOMO, revenge, overtrading.
+chart: { symbol: SPY, date: "2025-06-10" }
+steps:
+  - type: explain
+    title: The plan happens before the open
+    body: |
+      Everything you've built so far compresses into a five-minute morning
+      ritual — the same one this app's Market Day briefing automates:
+
+      1. **The map** (module 3): PDH/PDL/PDC, pre-market high/low on every
+         watchlist name.
+      2. **The context** (modules 4–7): gaps and their sizes, RVOL, daily
+         trend, which names are in play.
+      3. **The if-then plans** (module 8): "*IF* NVDA breaks the OR high on
+         RVOL > 1.5, *THEN* long at the break, stop at OR low, 2R target,
+         1% risk." Written before 9:30, executed without renegotiation.
+
+      A plan converts the open from a decision storm into a checklist. The
+      trader with if-then plans is REACTING at 9:45; the trader without them
+      is DECIDING — at the worst possible minutes of the day to be deciding.
+
+  - type: quiz
+    title: Check — what a plan is
+    question: Which of these is an actual trade plan, as this course defines it?
+    choices:
+      - text: "IF SPY closes over the OR high with RVOL > 1.5, THEN long at the break, stop at OR low, target 2R, 1% risk."
+        correct: true
+        explain: Condition, trigger, entry, stop, target, size — decided while calm. Everything else on the list is a mood with a ticker attached.
+      - text: "\"SPY looks strong today, I'm bullish.\""
+        explain: That's a feeling. No trigger, no invalidation, no size — nothing to execute and nothing to hold yourself to afterwards.
+      - text: "\"I'll watch the open and see what happens.\""
+        explain: Watching is fine — but that's the ABSENCE of a plan. The open rewards prepared reactions and punishes live decisions.
+
+  - type: explain
+    title: The journal is the actual teacher
+    body: |
+      Every trade in this app lands in the Journal with its **R-multiple**,
+      its **grade**, and the **checklist** as it stood at entry. That's not
+      record-keeping — it's the feedback loop:
+
+      - **Grade distribution over time** is your primary progress metric. More
+        Textbook/Solid entries month over month means the process is
+        improving — P&L follows expectancy with a lag (module 9).
+      - **The review habit**: after the close, replay your worst trade of the
+        day from the journal (one click — the chart reopens at that exact
+        bar). Ask one question: *what did the checklist say at that moment?*
+        If it said "don't" and you did — that's the pattern to hunt.
+      - Journal the PASSES too. A Textbook setup you skipped out of fear
+        teaches as much as a Reckless one you took out of boredom.
+
+  - type: quiz
+    title: Check — the right metric
+    question: Two weeks in, your P&L is slightly negative but your grade distribution moved from mostly-Risky to mostly-Solid. What does this course say?
+    choices:
+      - text: The process is improving — with ≥2R targets, expectancy turns P&L positive with sample size. Keep grading up, don't chase the money.
+        correct: true
+        explain: Two weeks of trades is noise; the grade trend is signal. Chasing P&L directly (bigger size, looser rules) is how improving traders un-improve.
+      - text: Negative P&L means the method is failing — change something big.
+        explain: Changing systems every red fortnight guarantees you're always in week one. The math of module 9 needs samples; the grades say the samples are getting better.
+      - text: Both metrics are equally important, always.
+        explain: Early on they are NOT — grades lead, money lags. A new trader watching daily P&L is a slot-machine player with a spreadsheet.
+
+  - type: explain
+    title: The three demons
+    body: |
+      Every blown account is one of three stories. Name them and you can catch
+      yourself mid-sentence:
+
+      1. **FOMO** — a move leaves without you and you chase it, far from any
+         trigger. The checklist already guards this: item 5, *not chasing*,
+         fails and the grade says Risky. Believe the grade, not the urge. There
+         is ALWAYS another setup tomorrow. Always.
+      2. **Revenge** — a stop-out feels personal, so you re-enter bigger to
+         "win it back." That's how −1R becomes −5R by 10:15. The module-9
+         circuit breaker (−3R, done for the day) exists precisely because you
+         can't be trusted to negotiate with yourself while bleeding.
+      3. **Overtrading** — boredom dressed as diligence. Six mediocre trades a
+         day, each individually defensible, collectively −EV after the spread
+         toll (module 1). The fix is structural: if-then plans mean no plan =
+         no trade. An empty day is a WIN when nothing triggered.
+
+      One sentence to keep: **the goal is not to trade; the goal is to take
+      graded setups.** Some days that's zero. The market pays patience and
+      charges activity.
+
+  - type: quiz
+    title: Check — demon recognition
+    question: "9:52 AM: stopped out of a Solid ORB for −1R. NVDA is now ripping without you. Your hand is on the buy button at +1.8R past the trigger. Which demons, and what's the move?"
+    choices:
+      - text: Both FOMO (chasing 1.8R past the trigger) and revenge (rebuying the name that stopped you). The move — hands off; the checklist would grade it Reckless.
+        correct: true
+        explain: |
+          Textbook double-demon. The entry fails item 5 catastrophically, and
+          the motivation is the stop-out, not the setup. Losing −1R on a Solid
+          trade is the SYSTEM WORKING — module 9's math already priced it in.
+      - text: No demon — the trend is up and strength begets strength.
+        explain: The trend item passing doesn't rescue an entry 1.8R from the trigger with a stop nowhere structural. "Strength" at any price is FOMO's marketing department.
+      - text: Revenge only, and it's fine because the first read was right.
+        explain: Being right about direction and wrong about price is still wrong — risk lives in the ENTRY. And the itch to prove the first trade "should have" won? That's revenge's whole pitch.
+
+  - type: explain
+    title: Where this leaves you
+    body: |
+      The curriculum is done. Here's the operating loop it built, end to end:
+
+      - **Pre-market**: read the briefing, draw the map, write if-then plans.
+      - **The open**: wait for the OR. React to triggers; ignore everything else.
+      - **Every entry**: bracket order, calculator-sized, checklist-graded.
+        Take Solid and better. Pass the rest *on purpose*.
+      - **The close**: flat by the bell — the app makes sure.
+      - **Post-market**: recap, journal, replay one trade. Watch the grade
+        distribution, not the P&L.
+
+      Market Day mode is now fully unlocked — the coach will call setups on
+      the real (15-minute-delayed) tape and grade you exactly as practice did.
+      Same checklist, same honesty, real days. Go slowly, size correctly, and
+      let the grades come to you.
+
+  - type: quiz
+    title: Final check — the loop
+    question: What, in one sentence, is the job this course trained you for?
+    choices:
+      - text: Take checklist-graded setups at calculated size, end flat, review honestly — and let expectancy do the compounding.
+        correct: true
+        explain: That's the whole machine. Ten modules, one sentence. Now go run the loop on live tape — Market Day is open.
+      - text: Predict the market's direction each morning better than other traders.
+        explain: Not once in ten modules did we predict. Context → trigger → reaction, with math for armor. Prediction is the game everyone else is losing.
+      - text: Trade as often as possible to maximize practice.
+        explain: Module 10's third demon, verbatim. Reps matter in REPLAY — that's free. Live activity has a toll booth.

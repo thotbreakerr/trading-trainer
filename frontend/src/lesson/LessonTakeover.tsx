@@ -149,11 +149,21 @@ export function LessonTakeover({
   })
   const chartData = replay.session ? sessionQ.data : browseQ.data
 
+  const [completeError, setCompleteError] = useState<string | null>(null)
   const markComplete = async () => {
     if (!step || stepDone) return
-    await api.completeStep(moduleNumber, step.index)
-    setStepDone(true)
-    await queryClient.invalidateQueries({ queryKey: ['lesson', moduleNumber] })
+    setCompleteError(null)
+    try {
+      await api.completeStep(
+        moduleNumber, step.index,
+        replay.session ? { session_id: replay.session.id } : undefined,
+      )
+      setStepDone(true)
+      await queryClient.invalidateQueries({ queryKey: ['lesson', moduleNumber] })
+    } catch (e) {
+      // graded practice: the server explains what grade is still needed
+      setCompleteError(e instanceof Error ? e.message : String(e))
+    }
   }
 
   const next = async () => {
@@ -284,6 +294,7 @@ export function LessonTakeover({
                   Mark practice complete
                 </button>
               )}
+              {completeError && <div className="ticket-error">{completeError}</div>}
             </div>
             {replay.session && (
               <div className="practice-sim">

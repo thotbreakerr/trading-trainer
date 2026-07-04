@@ -1,0 +1,151 @@
+# Module 8 — Core setups
+# Demo days:
+#   NVDA 2025-05-29 — post-earnings ORB long, the friendly archetype
+#   SPY 2025-04-09 — afternoon level-break/trend explosion
+#   MSFT 2025-05-01 — graded practice: trade the morning with a bracket
+module: 8
+title: Core setups
+summary: The four playbook trades — ORB, VWAP reclaim, key-level break, gap fill — and the checklist that grades them.
+chart: { symbol: NVDA, date: "2025-05-29" }
+steps:
+  - type: explain
+    title: What a setup actually is
+    body: |
+      A **setup** is not a pattern you spot — it's a *complete decision* made in
+      advance: **context** (why this trade should exist), a **trigger** (the bar
+      that proves it's starting), an **entry**, a **stop** (where you're wrong),
+      and a **target** (where you're paid). Miss any piece and it's a guess.
+
+      Your four setups, all built from modules 3–7:
+
+      1. **Opening-range breakout (ORB)** — the first 15 minutes set a range;
+         the first close beyond it, *with volume*, trades in that direction.
+         Stop: the other side of the range.
+      2. **VWAP reclaim** — price loses the anchor, fights back through it and
+         *holds*. Control changed hands. Stop: back under the reclaim swing.
+      3. **Key-level break** — first close through PDH/PDL or the pre-market
+         extreme after trading inside it. Stop: behind the recent swing.
+      4. **Gap fill** — a big emotional gap starts retracing through the open
+         price; target is yesterday's close. Stop: beyond the day's extreme.
+
+      From this module on, the app's coach detects these on every chart you
+      replay — and grades every entry you take against the same checklist it
+      applies to itself.
+
+  - type: explain
+    title: The checklist that grades everything
+    body: |
+      Every trade — the coach's or yours — is scored on five questions:
+
+      1. **With the trend?** (9/20 EMA alignment from module 4)
+      2. **Volume confirms?** (RVOL from module 6 — required for "Textbook")
+      3. **Reward ≥ 2× risk?** (target distance vs stop distance)
+      4. **Stop behind structure?** (a swing, a level — not a round number of dollars)
+      5. **Not chasing?** (entry within one risk-unit of the trigger)
+
+      Grades are just pass counts: **Textbook** (all five) / **Solid** (four) /
+      **Risky** (three) / **Reckless** (two or fewer). One special rule from
+      module 6: a breakout without volume can never be Textbook — the coach
+      calls it *"low quality — likely a trap."*
+
+      The checklist is always shown with the grade. No black boxes: when the
+      app says Risky, you'll see exactly which questions failed.
+
+  - type: replay
+    title: "Watch: a textbook ORB"
+    body: |
+      NVDA the morning after earnings — the same tape from modules 5 and 7,
+      now through the setup lens.
+    symbol: NVDA
+    date: "2025-05-29"
+    start: open
+    pauses:
+      - at: "09:45"
+        note: |
+          Opening range complete. Draw the box by eye: high, low. The trade
+          doesn't exist yet — a range is context, not a trigger. Check the
+          ingredients: gap context (module 7), RVOL (module 6), gap direction
+          vs the daily trend. Everything loaded?
+      - at: "10:00"
+        note: |
+          If a 1m candle CLOSED above the range on expanding volume, that was
+          the trigger — entry at the range high, stop at the range low, target
+          two risk-units up. Walk the checklist: trend ✓? volume ✓? R:R ✓?
+          structural stop ✓? not chasing ✓? THAT'S what Textbook looks like.
+      - at: "10:30"
+        note: |
+          Note what you did NOT have to do: predict. The range, the close
+          beyond it, the volume — all observable facts. Setups convert
+          prediction into reaction. That's the entire edge this course teaches.
+    completion: finish
+
+  - type: quiz
+    title: Check — trigger discipline
+    question: At 9:41 price wicks above the opening-range high on quiet volume but closes back inside. A setup?
+    choices:
+      - text: No — no close beyond the range, no volume, and the range isn't even complete. Three separate disqualifiers.
+        correct: true
+        explain: |
+          Wicks are probes, not proof. The ORB trigger is a CLOSE beyond a
+          COMPLETED range, with participation. Anything less is the trap side
+          of the trade.
+      - text: Yes — price touched new highs, that's the breakout.
+        explain: A touch that closes back inside is the FAILED breakout — the exact pattern that traps early buyers (and fuels the move the other way).
+      - text: Yes, but only if the next bar is green.
+        explain: Candle color isn't a trigger. Close-beyond-range + volume is.
+
+  - type: replay
+    title: "Watch: a level break with the whole market behind it"
+    body: |
+      April 9, 2025, afternoon. When the tariff-pause headline hit, SPY didn't
+      just rally — it broke EVERY level on the map with historic volume. Watch
+      how breaks behave when volume truly confirms.
+    symbol: SPY
+    date: "2025-04-09"
+    start: open
+    pauses:
+      - at: "13:30"
+        note: |
+          Mark the morning's swing highs and yesterday's high. Price is about
+          to interact with all of them. Before the headline: which checklist
+          items would a long here FAIL? (Trend? Volume?)
+      - at: "14:00"
+        note: |
+          Now step slowly. Each level break on this leg comes with volume
+          expansion — checklist item 2 passing in real time. Compare with the
+          9:41-style wick from the quiz: same price action, opposite
+          participation, opposite outcome.
+    completion: finish
+
+  - type: quiz
+    title: Check — the trap rule
+    question: An ORB long triggers perfectly but RVOL reads 0.8. The coach grades it Solid at best and adds a note. Why so harsh on an otherwise perfect trade?
+    choices:
+      - text: Breakouts literally run on participation — without volume there's nobody to sustain the move, so the setup's premise is missing.
+        correct: true
+        explain: |
+          A breakout is a bet that a crowd is repricing the stock. No crowd,
+          no bet — just a print above a line. That's why volume is the one
+          non-negotiable item for Textbook.
+      - text: The coach is conservative by design and grades everything down.
+        explain: The grade is a pass count, not a mood — four passes IS Solid. The note exists because this specific miss breaks the setup's premise.
+      - text: RVOL below 1 means the data feed is broken.
+        explain: RVOL 0.8 is real data — it means attendance is 20% below normal for this time of day.
+
+  - type: practice
+    title: "Practice: trade the open — graded"
+    body: |
+      Microsoft, the morning after blowout earnings (module 4's uptrend day).
+      Now you trade it.
+    symbol: MSFT
+    date: "2025-05-01"
+    start: open
+    require_grade: Solid
+    goal: |
+      Play the open. Frame the opening range, watch for a trigger, and take
+      **one bracket trade** — entry, stop, target, sized by the calculator.
+
+      The coach grades your entry the moment you place it. **This step
+      completes only with an entry graded Solid or better.** If you get
+      Risky/Reckless, read WHICH checklist items failed, restart the day, and
+      trade it again — infinite retries, zero judgment. That loop IS the lesson.

@@ -1,0 +1,123 @@
+# Module 9 — Risk management
+# Demo day: TSLA 2025-04-23 — volatile gap day for the graded sizing practice
+module: 9
+title: Risk management
+summary: Position sizing, R-multiples, expectancy — the arithmetic that decides survival.
+chart: { symbol: TSLA, date: "2025-04-23" }
+steps:
+  - type: explain
+    title: Risk a constant, size a variable
+    body: |
+      Amateurs pick a share count and discover their risk. Professionals pick
+      their **risk** and derive the share count:
+
+      > shares = (equity × risk%) ÷ (entry − stop)
+
+      With $30,000 and the 1% rule, every trade risks **$300** — whether the
+      stop is 10 cents away (3,000 shares) or $3 away (100 shares). A wide-stop
+      trade isn't "riskier"; it's *smaller*. That inversion is the whole trick.
+
+      This app's order ticket does the math for you — that's the sizing
+      calculator you saw in practice. Your only jobs: place the stop where the
+      trade is actually wrong (module 8's checklist item 4), and never override
+      the size because a trade "feels" good. Feelings don't survive contact
+      with a stop.
+
+  - type: quiz
+    title: Check — the sizing math
+    question: "$30,000 account, 1% risk. Entry $50.00, stop $49.50. How many shares?"
+    choices:
+      - text: 600 — $300 of risk ÷ $0.50 per share.
+        correct: true
+        explain: And if the stop were $1.00 away you'd take 300. Same $300 risk, different size. The dollar risk never changes; the size does.
+      - text: 300 — 1% of the account is 300, so 300 shares.
+        explain: That confuses risk DOLLARS with SHARES. $300 of risk at $0.50/share of stop distance buys 600 shares.
+      - text: As many as buying power allows.
+        explain: Buying power caps the size; risk DETERMINES it. Trading at the BP cap with no risk math is how accounts die on one gap.
+
+  - type: explain
+    title: R-multiples — the only honest scoreboard
+    body: |
+      Measure every trade in **R** — multiples of what you risked. Risk $300
+      and make $600: **+2R**. Stop out: **−1R**. Scratch at breakeven: 0R.
+
+      Why R beats dollars: it makes every trade comparable regardless of size,
+      and it exposes the only equation that matters —
+
+      > **Expectancy = (win% × avg win) − (loss% × avg loss)**
+
+      A 40% win rate with +2R winners and −1R losers earns **+0.2R per trade**
+      — a solid, profitable system that loses six trades out of ten. Read that
+      again: profitable *while usually being wrong*. That's why module 8's
+      checklist demands R:R ≥ 2 — it buys you the right to a human win rate.
+
+      This is also why the journal tracks your **grade distribution** over
+      time, not your P&L: with positive expectancy, process quality IS the
+      leading indicator. P&L follows it with a lag.
+
+  - type: quiz
+    title: Check — expectancy vs win rate
+    question: Trader A wins 70% of trades at +0.5R/−1R. Trader B wins 40% at +2R/−1R. Who makes money?
+    choices:
+      - text: B (+0.2R/trade). A LOSES money (+0.05R... actually 0.35 − 0.30 = +0.05R — barely alive) while feeling like a genius.
+        correct: true
+        explain: |
+          A: 0.7×0.5 − 0.3×1 = +0.05R — one commission or slip from breakeven,
+          despite winning constantly. B: 0.4×2 − 0.6×1 = +0.2R, four times the
+          edge while losing most trades. Win rate is a feeling; expectancy is money.
+      - text: A — winning 70% of the time is obviously better.
+        explain: |
+          Run the arithmetic — 0.7×0.5R − 0.3×1R = +0.05R. High win rate with
+          tiny winners is the classic slow bleed. The FEELING of winning is
+          what it sells you.
+      - text: Neither can be evaluated without the dollar amounts.
+        explain: That's the beauty of R — the comparison needs no dollars at all. Expectancy per trade settles it.
+
+  - type: explain
+    title: The lines you never cross
+    body: |
+      Three circuit breakers, decided while calm, enforced without debate:
+
+      1. **Max daily loss: −3R.** Three full stops in one day means today's
+         read is wrong. Stop trading — the market reopens tomorrow. (Revenge
+         trading past −3R is how a bad day becomes a bad month; module 10.)
+      2. **The 3:50 warning.** This app warns 10 minutes before the close and
+         **force-flattens at the bell** at whatever price is there. Day traders
+         end flat — a position held overnight is a different, bigger risk you
+         never sized for. Half days flatten early; the calendar knows.
+      3. **The PDT reality.** Real accounts under $25k get ~3 day trades per
+         5 sessions (pattern-day-trader rule). This sim doesn't enforce it —
+         but it's why the discipline of FEW, GOOD trades isn't optional
+         training-wheels advice; it's the actual constraint you'll trade under.
+
+  - type: quiz
+    title: Check — the flatten rule
+    question: 3:56 PM, you're down 0.4R on a long that's "about to turn." What does this course's discipline say?
+    choices:
+      - text: You're out at 4:00 regardless — the app force-closes it as a "forced EOD close." Better to exit on YOUR terms at 3:56.
+        correct: true
+        explain: The market doesn't care that it's about to turn. Overnight gaps aren't sized into a day trade — ending flat is non-negotiable, so act before the bell acts for you.
+      - text: Hold — four minutes is plenty of time for a turn.
+        explain: Maybe! And if it gaps down 4% tomorrow on news at 6 PM, the loss is 10× anything you sized for. Day trades end at the bell. Every time.
+      - text: Double the position to lower the average.
+        explain: Adding to a loser minutes before a forced close is the single most Reckless sentence in trading. The grader would need a new tier.
+
+  - type: practice
+    title: "Practice: size it right — graded"
+    body: |
+      Tesla on a violent gap morning — wide ranges, honest stops needed.
+    symbol: TSLA
+    date: "2025-04-23"
+    start: open
+    require_grade: Solid
+    goal: |
+      Trade the morning with ONE bracket, but this time the point is the math:
+
+      1. Let the sizing calculator set the share count from a 1% risk — notice
+         how the volatile tape forces a wider stop and a SMALLER size.
+      2. Stop behind real structure (VWAP, OR boundary, a swing) — item 4.
+      3. Target at least 2R — item 3.
+
+      Completes with an entry graded **Solid or better**. If the grade comes
+      back Risky, the checklist will tell you which line of the risk math you
+      broke. Restart, re-size, retry.

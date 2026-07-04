@@ -22,13 +22,22 @@ LESSONS_DIR = PROJECT_ROOT / "lessons"
 
 def test_shipped_lesson_files_all_parse():
     modules = load_lessons(LESSONS_DIR)
-    assert [m.module for m in modules] == [1, 2, 3, 4, 5, 6, 7]
+    assert [m.module for m in modules] == list(range(1, 11))
     for mod in modules:
         assert mod.status == STATUS_OK, f"module {mod.module}: {mod.status_reason}"
         assert mod.steps, mod.path.name
         assert mod.demo_days, f"module {mod.module} teaches without data?"
         types = {s.type for s in mod.steps}
         assert "quiz" in types, f"module {mod.module} has no quiz"
+
+
+def test_setup_and_risk_modules_gate_practice_on_grade():
+    modules = {m.module: m for m in load_lessons(LESSONS_DIR)}
+    for number in (8, 9):
+        gates = [s.require_grade for s in modules[number].steps if s.type == "practice"]
+        assert gates and all(g == "Solid" for g in gates), (
+            f"module {number} practice must require Solid (doc §12)"
+        )
 
 
 def _write(tmp_path: Path, name: str, text: str) -> Path:

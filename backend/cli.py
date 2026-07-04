@@ -135,6 +135,29 @@ def cmd_find_days(args) -> None:
         print(f"{day.isoformat():<12}{gap_pct:>8.2f}{range_pct:>9.2f}{trend:>7.2f}")
 
 
+def cmd_scan(args) -> None:
+    """Batch detectors over a cached day — sources 'textbook' lesson dates."""
+    from app.config import load_rules_config
+    from app.detectors.engine import scan_day
+
+    _, conn, _, calendar, fetcher = _context()
+    symbol = args.symbol.upper()
+    day = date.fromisoformat(args.date)
+    fetcher.ensure_day(symbol, day)
+    signals = scan_day(conn, calendar, symbol, day, load_rules_config())
+    if not signals:
+        print(f"{symbol} {day}: no signals fired")
+        return
+    print(f"{symbol} {day}: {len(signals)} signals")
+    for s in signals:
+        parts = [f"{s.ts.astimezone().strftime('%H:%M')}", s.setup_type, s.direction]
+        if s.entry is not None:
+            parts.append(f"entry {s.entry} stop {s.stop} target {s.target} (R:R {s.rr})")
+        if s.context:
+            parts.append(str(s.context))
+        print("  " + "  ".join(parts))
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -154,6 +177,10 @@ def main() -> None:
     fd.add_argument("--kind", choices=["gap", "trend", "quiet"], default="gap")
     fd.add_argument("--top", type=int, default=10)
     fd.set_defaults(fn=cmd_find_days)
+    sc = sub.add_parser("scan")
+    sc.add_argument("symbol")
+    sc.add_argument("date", help="YYYY-MM-DD (a cached trading day)")
+    sc.set_defaults(fn=cmd_scan)
     args = p.parse_args()
     args.fn(args)
 

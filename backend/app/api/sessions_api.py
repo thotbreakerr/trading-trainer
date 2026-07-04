@@ -15,6 +15,8 @@ from app.api.serialize import bar_json, day_meta, point_json
 from app.marketdata.calendar import CalendarUnavailable
 from app.marketdata.fetcher import NotTradingDay
 from app.marketdata.window import BarWindow
+from app.detectors.engine import build_snapshot
+from app.grading.grader import GradeResult, grade_entry, tier_at_least
 from app.models import to_db_ts
 from app.providers.base import ProviderError
 from app.sim.engine import OrderError, SimEngine, SimOrder
@@ -199,6 +201,7 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
     cfg = deps.get_cfg(request)
     symbol = session.symbols[0]
     now = session.clock.current
+    grade = None
     with session.lock:
         if body.kind == "bracket":
             if body.stop_price is None or body.target_price is None:
@@ -224,6 +227,12 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
                 )
             except OrderError as e:
                 raise HTTPException(status_code=400, detail=str(e))
+            if not any(e.kind == "reject" for e in events):
+                grade = _grade_placement(
+                    request, session,
+                    "long" if body.side == "buy" else "short",
+                    entry_ref, body.stop_price, body.target_price,
+                )
         else:
             if body.qty is None:
                 raise HTTPException(status_code=400, detail="qty required for non-bracket orders")
@@ -237,7 +246,35 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
         "orders": [_order_json(o) for o in orders],
         "rejected": bool(rejected),
         "reason": rejected[0].detail if rejected else None,
+        "grade": grade.to_json() if grade else None,
     }
+
+
+def _grade_placement(
+    request: Request,
+    session: sessions.Session,
+    direction: str,
+    entry: float,
+    stop: float | None,
+    target: float | None,
+) -> GradeResult | None:
+    """Every graded-able entry gets its checklist at decision time (doc §10);
+    graded lesson practice records the best tier on the session."""
+    if stop is None:
+        return None
+    try:
+        window = _window(request, session)
+        snap = build_snapshot(window, session.symbols[0])
+        rules = request.app.state.rules
+        result = grade_entry(direction, entry, stop, target, snap, rules.get("grading", {}))
+    except Exception as e:  # grading must never block a fill
+        logger.warning("grading failed: %s", e)
+        return None
+    ctx = session.lesson_ctx
+    if ctx is not None:
+        if ctx.best_grade is None or not tier_at_least(ctx.best_grade, result.tier):
+            ctx.best_grade = result.tier
+    return result
 
 
 @router.delete("/sessions/{session_id}/orders/{order_id}")

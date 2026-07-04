@@ -13,6 +13,7 @@ from app.analysis.indicators import ema_series
 from app.api import deps
 from app.api.serialize import bar_json, day_meta, point_json
 from app.config import AppConfig
+from app.detectors.engine import scan_day
 from app.marketdata.aggregate import TF_MINUTES
 from app.marketdata.calendar import CalendarUnavailable, MarketCalendar
 from app.marketdata.fetcher import Fetcher, NotTradingDay
@@ -162,6 +163,30 @@ def symbols(request: Request) -> dict:
         "state": state.state,
         "symbols": items,
     }
+
+
+@router.get("/scan")
+def scan(symbol: str, day: date, request: Request) -> dict:
+    """Batch detector run over a cached day (doc §10) — the same engine the
+    live loop runs, stepped across the whole session."""
+    symbol = symbol.upper()
+    conn = deps.get_db(request)
+    cal = deps.get_calendar(request)
+    fetcher = deps.get_fetcher(request)
+    if fetcher is not None:
+        try:
+            fetcher.ensure_day(symbol, day)
+        except NotTradingDay:
+            raise HTTPException(status_code=404, detail=f"{day} is not a trading day")
+        except (ProviderError, CalendarUnavailable) as e:
+            logger.warning("scan lazy fetch failed %s %s: %s", symbol, day, e)
+    try:
+        signals = scan_day(conn, cal, symbol, day, request.app.state.rules)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except CalendarUnavailable as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    return {"symbol": symbol, "day": day.isoformat(), "signals": [s.to_json() for s in signals]}
 
 
 class BackfillIn(BaseModel):

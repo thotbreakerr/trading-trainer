@@ -43,6 +43,7 @@ class LessonStep:
     start: str = "open"
     pauses: list[dict] = field(default_factory=list)  # {"at": "09:35", "note": md}
     goal: str | None = None
+    require_grade: str | None = None  # graded practice gate (doc §12)
     # quiz
     question: str | None = None
     choices: list[dict] = field(default_factory=list)  # {"text", "correct", "explain"}
@@ -116,6 +117,13 @@ def _parse_step(raw: dict, index: int, path: Path) -> LessonStep:
     if step_type == "practice":
         _require(bool(raw.get("goal")), path, ctx, "practice step needs a goal")
         step.goal = str(raw["goal"])
+        required = raw.get("require_grade")
+        if required is not None:
+            _require(
+                required in ("Solid", "Textbook"), path, ctx,
+                "require_grade must be Solid or Textbook",
+            )
+            step.require_grade = str(required)
 
     if step_type == "quiz":
         _require(bool(raw.get("question")), path, ctx, "quiz needs a question")

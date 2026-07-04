@@ -127,10 +127,17 @@ export interface SessionTrade {
   r_multiple: number | null
 }
 
+export interface GradeInfo {
+  tier: 'Textbook' | 'Solid' | 'Risky' | 'Reckless'
+  note: string | null
+  checklist: { key: string; label: string; passed: boolean; detail: string }[]
+}
+
 export interface OrderResult {
   orders: WorkingOrder[]
   rejected: boolean
   reason: string | null
+  grade: GradeInfo | null
 }
 
 export interface SizingResult {

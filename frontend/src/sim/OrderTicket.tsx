@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import type { SizingResult } from '../lib/types'
+import type { GradeInfo, SizingResult } from '../lib/types'
 
 /** Bracket-first order entry (doc §9): entry + stop + target as one unit,
  * sized by the risk calculator unless the user overrides the share count. */
@@ -24,6 +24,7 @@ export function OrderTicket({
   const [qtyOverride, setQtyOverride] = useState('')
   const [sizing, setSizing] = useState<SizingResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [grade, setGrade] = useState<GradeInfo | null>(null)
   const [busy, setBusy] = useState(false)
 
   const entryRef = entryType === 'limit' ? parseFloat(limitPrice) : (lastPrice ?? NaN)
@@ -45,6 +46,7 @@ export function OrderTicket({
   const place = async () => {
     setBusy(true)
     setError(null)
+    setGrade(null)
     try {
       const result = await api.placeOrder(sessionId, {
         kind: 'bracket',
@@ -57,6 +59,7 @@ export function OrderTicket({
         qty: qtyOverride ? parseInt(qtyOverride, 10) : undefined,
       })
       if (result.rejected) setError(result.reason ?? 'rejected')
+      setGrade(result.grade)
       await queryClient.invalidateQueries({ queryKey: ['account', sessionId] })
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
@@ -113,6 +116,19 @@ export function OrderTicket({
       <button className="btn-primary place" disabled={!ready || busy} onClick={() => void place()}>
         Place {side === 'buy' ? 'long' : 'short'} bracket
       </button>
+      {grade && (
+        <div className={`grade-card ${grade.tier.toLowerCase()}`}>
+          <div className="grade-tier">{grade.tier}</div>
+          {grade.note && <div className="grade-note">{grade.note}</div>}
+          <ul className="grade-checklist">
+            {grade.checklist.map((c) => (
+              <li key={c.key} className={c.passed ? 'pass' : 'fail'} title={c.detail}>
+                {c.passed ? '✓' : '✗'} {c.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

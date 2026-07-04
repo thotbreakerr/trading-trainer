@@ -150,3 +150,50 @@ class BarWindow:
         only from the anchor day's visible bars (doc §6.3)."""
         today = [b for b in self.bars_1m(symbol) if et_date(b.ts) == self.anchor.day]
         return build_levels(self.daily(symbol, 1), today)
+
+
+@dataclass
+class RvolBaseline:
+    """Pre-computed cumulative time-of-day volume baseline. Lives in the gate
+    module because it reads prior days' bars raw — legal only because those
+    sessions are strictly before the anchor day and therefore complete."""
+
+    by_minute: dict[int, float]
+
+    @classmethod
+    def load(
+        cls,
+        conn: sqlite3.Connection,
+        calendar: MarketCalendar,
+        symbol: str,
+        anchor_day: date,
+        days: int = 20,
+    ) -> "RvolBaseline | None":
+        from app.analysis.indicators import cumulative_volume_at
+
+        try:
+            prior = calendar.trading_days_back(anchor_day, days + 1)[:-1]
+        except CalendarUnavailable:
+            return None
+        per_day = [
+            store.get_bars_1m_raw(conn, symbol, cd.session_open_utc(), cd.session_close_utc())
+            for cd in prior
+        ]
+        per_day = [bars for bars in per_day if bars]
+        if not per_day:
+            return None
+        by_minute: dict[int, float] = {}
+        for minute in range(4 * 60, 20 * 60 + 1):
+            values = [cumulative_volume_at(bars, minute) for bars in per_day]
+            values = [v for v in values if v > 0]
+            if values:
+                by_minute[minute] = sum(values) / len(values)
+        return cls(by_minute)
+
+    def rvol(self, today_bars, at_minute: int) -> float | None:
+        from app.analysis.indicators import cumulative_volume_at
+
+        base = self.by_minute.get(at_minute)
+        if not base:
+            return None
+        return cumulative_volume_at(today_bars, at_minute) / base

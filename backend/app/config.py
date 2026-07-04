@@ -63,6 +63,14 @@ def load_app_config(path: Path | None = None) -> AppConfig:
     )
 
 
+def load_rules_config(path: Path | None = None) -> dict:
+    """Detector thresholds / grader params / unlock map (doc §10, §14)."""
+    path = path or (CONFIG_DIR / "rules_config.yaml")
+    if not path.exists():
+        return {}
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
 def load_creds(env_path: Path | None = None) -> AlpacaCreds | None:
     """Read the Alpaca key pair from .env (process env wins, for CI/tests)."""
     values: dict[str, str | None] = dict(dotenv_values(env_path or ENV_PATH))

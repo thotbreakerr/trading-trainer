@@ -64,8 +64,11 @@ export const api = {
   deleteSession: (id: string) => fetch(`/api/sessions/${id}`, { method: 'DELETE' }),
   lessons: () => getJson<{ modules: LessonListItem[] }>('/api/lessons'),
   lesson: (module: number) => getJson<LessonDetail>(`/api/lessons/${module}`),
-  completeStep: (module: number, step: number, body?: { answer?: number; grade?: string }) =>
-    postJson<CompleteResponse>(`/api/lessons/${module}/steps/${step}/complete`, body ?? {}),
+  completeStep: (
+    module: number,
+    step: number,
+    body?: { answer?: number; session_id?: string },
+  ) => postJson<CompleteResponse>(`/api/lessons/${module}/steps/${step}/complete`, body ?? {}),
   lessonSession: (module: number, step: number) =>
     postJson<SessionInfo>(`/api/lessons/${module}/steps/${step}/session`),
   placeOrder: (sessionId: string, body: OrderRequest) =>

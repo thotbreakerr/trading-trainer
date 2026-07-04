@@ -19,6 +19,7 @@ detectors:
 
 grading:
   min_rr: 2.0                    # checklist item: reward-to-risk at entry
+  min_rvol: 1.5                  # checklist item: volume confirms
   # grade = checklist pass count: Textbook / Solid / Risky / Reckless
   # "Textbook" additionally requires RVOL confluence (chop mitigation, doc §10)
 
@@ -27,7 +28,9 @@ callouts:
   watch_minutes: {}              # e.g. opening_range_breakout: 15
 
 unlocks:
-  # setup_type -> curriculum module that unlocks it (doc §12)
+  # detector unlock key -> curriculum module that unlocks it (doc §12)
+  trend_state: 4
+  rvol_spike: 6
   gap_context: 7
   opening_range_breakout: 8
   vwap_reclaim: 8

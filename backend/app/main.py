@@ -13,7 +13,7 @@ from fastapi import FastAPI
 
 from app import db
 from app.api import data, deps, lessons_api, sessions_api, system
-from app.config import PROJECT_ROOT, load_app_config, load_creds
+from app.config import PROJECT_ROOT, load_app_config, load_creds, load_rules_config
 from app.lessons.loader import load_lessons, validate_demo_days
 from app.marketdata.calendar import MarketCalendar
 from app.marketdata.fetcher import Fetcher
@@ -62,6 +62,7 @@ def create_app() -> FastAPI:
     db.init_db(cfg.db_path)
     app = FastAPI(title="Day Trading Trainer", version="0.1.0", lifespan=lifespan)
     app.state.cfg = cfg
+    app.state.rules = load_rules_config()
     app.state.lessons = load_lessons(LESSONS_DIR)
     deps.install_provider(app, load_creds())
     app.include_router(system.router, prefix="/api", tags=["system"])

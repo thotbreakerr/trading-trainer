@@ -33,6 +33,17 @@ class SessionNotFound(KeyError):
 
 
 @dataclass
+class LessonCtx:
+    """Which lesson step owns this session — and, for graded practice, the
+    best entry grade earned so far (server-side, never client-claimed)."""
+
+    module: int
+    step: int
+    require_grade: str | None = None
+    best_grade: str | None = None
+
+
+@dataclass
 class Session:
     id: str
     mode: str  # 'replay' | 'lesson' | 'review'  (marketday joins later)
@@ -45,6 +56,7 @@ class Session:
     end_at: datetime  # anchor session close — the step loop stops here
     last_seen: dict[str, datetime]  # per-symbol high-water mark (a TIME, not a bar)
     sim: SimEngine | None = None
+    lesson_ctx: LessonCtx | None = None
     persisted_trades: int = 0  # journal write-through high-water mark
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
@@ -76,6 +88,7 @@ def create_session(
     start_at: datetime | None = None,  # review mode: jump straight to a moment
     mode: str = "replay",
     sim: SimEngine | None = None,
+    lesson_ctx: LessonCtx | None = None,
 ) -> Session:
     cal_day = calendar.day(day)
     if cal_day is None:
@@ -95,6 +108,7 @@ def create_session(
         end_at=cal_day.session_close_utc(),
         last_seen={s.upper(): initial_cutoff for s in symbols},
         sim=sim,
+        lesson_ctx=lesson_ctx,
     )
     with _REGISTRY_LOCK:
         _SESSIONS[session.id] = session
