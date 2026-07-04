@@ -216,8 +216,12 @@ class AlpacaProvider:
                 {
                     "symbols": "SPY",
                     "timeframe": "1Day",
+                    # Probe a fully HISTORICAL window: the free tier 403s any
+                    # query whose range touches "recent SIP data", and a 1Day
+                    # request ending near now counts (today's forming bar).
+                    # Week-old bars prove the entitlement just as well.
                     "start": (today - timedelta(days=10)).isoformat(),
-                    "end": _rfc3339(self._now() - RECENT_DATA_CLAMP),
+                    "end": _rfc3339(self._now() - timedelta(days=1)),
                     "limit": 1,
                     "adjustment": "split",
                     "feed": "sip",

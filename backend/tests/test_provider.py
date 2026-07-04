@@ -142,6 +142,24 @@ def test_daily_bars_map_to_et_dates():
     assert out["SPY"][0].day == date(2026, 6, 16)  # 04:00Z = midnight ET
 
 
+def test_validate_probe_never_touches_the_recent_window():
+    """Regression (live 403 on first real keys): the data-host probe must end
+    comfortably in the past — the free tier rejects ranges near now."""
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        if request.url.host == "data.alpaca.markets":
+            return httpx.Response(200, json={"bars": {}, "next_page_token": None})
+        return httpx.Response(200, json=[])
+
+    provider, _ = make_provider(handler)
+    assert provider.validate_keys().ok
+    bars_request = next(r for r in seen if r.url.host == "data.alpaca.markets")
+    sent_end = datetime.fromisoformat(bars_request.url.params["end"])
+    assert sent_end <= NOW - timedelta(hours=23)
+
+
 def test_validate_keys_reports_per_host():
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.host == "data.alpaca.markets":
