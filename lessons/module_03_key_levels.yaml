@@ -1,0 +1,127 @@
+# Module 3 — Key levels
+# Demo days:
+#   SPY 2025-03-13 — correction low retest week: heavy interaction with prior-day levels
+#   QQQ 2025-03-14 — the bounce day for practice
+module: 3
+title: Key levels
+summary: Prior day high/low, pre-market range, swing points, round numbers — the map before the drive.
+chart: { symbol: SPY, date: "2025-03-13" }
+steps:
+  - type: explain
+    title: Why lines on a chart move real money
+    body: |
+      A **level** is a price where a lot of decisions got made — yesterday's high,
+      the pre-market low, a round number like $550. Levels matter because of
+      **memory**: everyone who traded there is watching it.
+
+      The levels this course actually uses (no more, no less):
+
+      - **PDH / PDL / PDC** — prior day high, low, close. The most watched lines in
+        day trading.
+      - **Pre-market high / low** — this morning's early range; today's first
+        boundaries.
+      - **Round numbers** — $100s and $50s attract orders like porch lights attract moths.
+      - **Swing points** — obvious intraday peaks/valleys where price already turned once.
+
+      What makes a level *good* is reaction history: price either **respects** it
+      (turns) or **breaks** it (and often retests it from the other side — old
+      ceiling becomes new floor).
+
+  - type: action
+    title: See levels on the higher timeframe
+    body: |
+      Switch to the **15-minute** chart. Prior days are visible for exactly this
+      reason: find yesterday's high and low by eye, then look where today's
+      pre-market traded relative to them. That's your map for the open.
+    pointer:
+      target: tf-15m
+      label: Click "15m"
+
+  - type: replay
+    title: "Watch: a level war at the lows"
+    body: |
+      March 13, 2025 — the S&P pressing into a 10% correction. Days like this are
+      level-reaction clinics: watch how price behaves at the prior day's low and at
+      round numbers on the way down.
+    symbol: SPY
+    date: "2025-03-13"
+    start: open
+    pauses:
+      - at: "09:40"
+        note: |
+          Locate PDL (yesterday's low) relative to price right now. Selling into a
+          well-watched low often gets a REACTION — shorts take profit there, dip
+          buyers probe. Watch the wicks near it: rejection or acceptance?
+      - at: "11:00"
+        note: |
+          If a level has been touched more than once, each touch weakens it — the
+          buyers defending it get used up. Count the touches on the morning low so
+          far. Multiple probes into the same floor is how breaks get set up.
+      - at: "14:30"
+        note: |
+          Afternoon: whichever way the morning range resolved, look for the RETEST —
+          price breaking a level, then coming back to kiss it from the other side.
+          Support-becomes-resistance (and vice versa) is the single most reusable
+          pattern in this module.
+    completion: finish
+
+  - type: quiz
+    title: Check — reading a reaction
+    question: Price breaks below the prior day low, then rallies back up to it and stalls, printing small candles with upper wicks just underneath. What are you looking at?
+    choices:
+      - text: A retest — the broken floor acting as a ceiling. Bearish continuation is the higher-probability read.
+        correct: true
+        explain: |
+          Old support, new resistance. Sellers who missed the break get a second
+          chance at a good price, and trapped buyers from above sell to get out even.
+      - text: A guaranteed reversal back above the level.
+        explain: |
+          Nothing on a chart is guaranteed — and stalling UNDER a broken level is
+          the failure-to-reclaim pattern, which leans bearish, not bullish.
+      - text: Noise — levels stop mattering once broken.
+        explain: Broken levels often matter MORE — every trapped position at them is a future order.
+
+  - type: explain
+    title: Swing points and how levels chain together
+    body: |
+      Inside the day, price leaves **swing points** — local peaks and valleys where
+      it already turned. Connect the reactions and you get the day's skeleton:
+      trend legs between levels, stalls at them.
+
+      Two practical habits from this module:
+
+      1. **Mark PDH, PDL, PDC and the pre-market high/low before the open.** Five
+         lines, drawn in one minute, that contextualize everything the day does.
+      2. **At every level, expect a decision** — respect or break — and let the
+         candles (module 1) plus volume (module 6) tell you which one you're watching.
+
+  - type: practice
+    title: "Practice: map the day, then watch it trade"
+    body: |
+      The bounce session after the correction lows.
+    symbol: QQQ
+    date: "2025-03-14"
+    start: open
+    goal: |
+      Before stepping past the first bar: using the visible prior day and
+      pre-market, identify by eye —
+
+      1. Prior day high, low, and close.
+      2. Pre-market high and low.
+      3. The nearest round number above and below the open.
+
+      Then play the day through at 2×, pausing at each of your levels. Score each
+      one: **respected** or **broken**? When you've watched at least three level
+      interactions, mark the step complete.
+
+  - type: quiz
+    title: Check — the pre-open ritual
+    question: Which five lines does this course want on your chart before every open?
+    choices:
+      - text: Prior day high, low, close, and the pre-market high and low.
+        correct: true
+        explain: The one-minute map. Modules 7 and 8 build the actual trades on top of it.
+      - text: Every swing point from the last month.
+        explain: That's wallpaper, not a map. Five lines you respect beat fifty you ignore.
+      - text: None — levels are drawn after the open once real volume shows up.
+        explain: After the open you're reacting. The whole point of the map is having it BEFORE the decisions come at you.

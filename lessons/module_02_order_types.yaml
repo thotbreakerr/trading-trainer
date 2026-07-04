@@ -1,0 +1,125 @@
+# Module 2 — Order types
+# Read-first module (doc §7: lessons without a natural "do" hook may order
+# Read-first). Demo day: NVDA 2025-01-27 — the DeepSeek gap-down, a brutal
+# live illustration of slippage and stop cascades.
+module: 2
+title: Order types
+summary: Market vs. limit, stops, stop-limits, slippage — and why brackets are your default.
+chart: { symbol: NVDA, date: "2025-01-27" }
+steps:
+  - type: explain
+    title: Market orders and limit orders
+    body: |
+      Every order answers two questions: **how fast** and **at what price**. You
+      can only pick one to guarantee.
+
+      - A **market order** guarantees speed: you trade *now*, at whatever the other
+        side is asking. Certain fill, uncertain price.
+      - A **limit order** guarantees price: "I'll buy, but only at $100.00 or
+        better." Certain price, uncertain fill — the market may never come to you.
+
+      In this simulator a market order fills at the **next bar's open** — you never
+      get the price you clicked on, because in real life you don't either. That
+      pessimism is deliberate; flattering fills teach bad habits.
+
+  - type: quiz
+    title: Check — the core trade-off
+    question: You want to buy NVDA the instant it breaks above a level, and you care more about being IN than about the exact price. Which order?
+    choices:
+      - text: Market order — pay for immediacy when being in the trade matters more than the last cent.
+        correct: true
+        explain: |
+          Right — and knowing *when* immediacy is worth paying for is half of this
+          module. The other half is knowing when it isn't.
+      - text: Limit order at the level — it's always better to control price.
+        explain: |
+          Price control has a cost too: in a fast break, the market leaves without
+          you. A resting limit at the level often fills only when the break FAILS —
+          you get filled precisely when you're wrong.
+      - text: No order — breakouts can't be traded.
+        explain: They can — module 8 teaches exactly that setup. This one teaches the tools.
+
+  - type: explain
+    title: Stops, stop-limits, and slippage
+    body: |
+      A **stop order** is your ejection seat: "if price trades through X against
+      me, get me out." It rests silently and becomes a market order when touched.
+
+      The catch is **slippage**. If bad news lands and price *gaps* through your
+      stop, you don't get your stop price — you get the next traded price, which
+      can be far worse. This sim models that honestly: a gapped stop fills at the
+      bar's open, not at your number.
+
+      A **stop-limit** tries to cap that damage ("stop at X, but pay no worse than
+      Y") — with a dark side: in a true collapse, price can blow through both and
+      leave you still holding. For fast markets in liquid names, a plain stop that
+      *always* gets you out is usually the right default. Protection first.
+
+  - type: replay
+    title: "Watch: slippage in the wild"
+    body: |
+      January 27, 2025 — DeepSeek panic. NVDA gapped down roughly 12% overnight and
+      kept sliding. Watch what execution would have felt like.
+    symbol: NVDA
+    date: "2025-01-27"
+    start: open
+    pauses:
+      - at: "09:31"
+        note: |
+          One minute in. Anyone holding from Friday with a stop anywhere in the gap
+          got filled near this open — potentially 10%+ below their stop price. A stop
+          protects you from a *move*; nothing protects you from a *gap*. (That's why
+          module 9 will insist on position sizes that survive gaps.)
+      - at: "09:50"
+        note: |
+          Watch the down-legs: each break of a round number or obvious low triggers
+          another cluster of resting stops, which become market sells, which push
+          price into the next cluster. A stop cascade. Your stop is invisible to
+          you — but the crowd's stops are visible in moves like this.
+    completion: finish
+
+  - type: quiz
+    title: Check — slippage
+    question: Your stop to sell sits at $120.00. Overnight news hits and the stock opens at $112.50. Where does your stop fill (in this sim and, realistically, in life)?
+    choices:
+      - text: About $112.50 — the stop triggered on the gap and became a market order at the open.
+        correct: true
+        explain: |
+          Yes — $7.50 of slippage. The stop guaranteed your EXIT, not your price.
+          Sizing so that a gap through your stop is survivable is the lesson.
+      - text: Exactly $120.00 — that's what a stop is for.
+        explain: |
+          A stop guarantees the attempt, not the price. Nobody was buying at $120
+          this morning — your order fills where trades actually exist.
+      - text: It doesn't fill and you stay in the position.
+        explain: A plain stop always fires once touched. (A stop-LIMIT can strand you in — its own risk.)
+
+  - type: explain
+    title: Brackets — the whole trade as one decision
+    body: |
+      From module 9 on, you'll place almost every trade as a **bracket**: the entry,
+      the protective stop, and the profit target submitted together as one unit.
+
+      - Entry fills → stop and target go live automatically.
+      - Either exit fills → the other cancels (nothing left dangling).
+      - Entry never fills → the whole thing evaporates at the close.
+
+      Brackets force the discipline this course keeps hammering: **decide where
+      you're wrong and where you're taking profit BEFORE you enter** — while you're
+      calm — instead of improvising while the position breathes at you.
+
+      One honest edge case you'll meet in the sim: if a single bar tags both your
+      stop and your target, the sim assumes the **stop fired first**. Worst-case by
+      design.
+
+  - type: quiz
+    title: Check — brackets
+    question: Your bracket's entry never fills all day. What happens at the close?
+    choices:
+      - text: The entire bracket — entry, stop, target — is canceled.
+        correct: true
+        explain: Nothing dangles overnight. Day trading ends flat, and so does every unfilled order.
+      - text: The entry converts to a market order so you don't miss the trade.
+        explain: That would be the opposite of discipline — an order you never agreed to at a price you never chose.
+      - text: The stop and target stay working overnight.
+        explain: Exits can't exist without a position — with no entry fill there's nothing to exit.

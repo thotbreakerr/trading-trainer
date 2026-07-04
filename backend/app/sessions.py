@@ -18,7 +18,7 @@ from __future__ import annotations
 import threading
 import uuid
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from app.marketdata.calendar import MarketCalendar
 from app.marketdata.window import BAR_SECONDS, BarWindow, ReplayClock
@@ -140,3 +140,14 @@ def restart_session(session: Session) -> None:
         session.clock.current = session.start_at
         initial_cutoff = session.start_at - timedelta(seconds=BAR_SECONDS)
         session.last_seen = {s: initial_cutoff for s in session.symbols}
+
+
+def seek_session(session: Session, to_epoch: int) -> None:
+    """Lesson-only navigation: everything derives from the clock, so setting
+    it (and resetting the high-water marks) is a complete state change."""
+    target = datetime.fromtimestamp(to_epoch, tz=UTC)
+    target = max(session.start_at, min(target, session.end_at))
+    with session.lock:
+        session.clock.current = target
+        cutoff = target - timedelta(seconds=BAR_SECONDS)
+        session.last_seen = {s: cutoff for s in session.symbols}

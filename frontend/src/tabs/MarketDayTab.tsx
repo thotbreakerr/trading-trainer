@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import type { Timeframe } from '../lib/types'
+import { ChartErrorBoundary } from '../chart/ChartErrorBoundary'
 import { ChartPane } from '../chart/ChartPane'
 import { TimeframeSwitcher } from '../chart/TimeframeSwitcher'
 import { useBars } from '../chart/useBars'
@@ -101,13 +102,15 @@ export function MarketDayTab() {
           )}
           <TimeframeSwitcher tf={tf} onChange={setTf} />
         </div>
-        <ChartPane
-          bars={data?.bars ?? []}
-          days={data?.days ?? []}
-          overlays={inReplay ? sessionQ.data?.overlays : undefined}
-          follow={inReplay && replay.playing}
-          fitKey={`${symbol}:${displayDay}:${replay.session?.id ?? 'browse'}`}
-        />
+        <ChartErrorBoundary>
+          <ChartPane
+            bars={data?.bars ?? []}
+            days={data?.days ?? []}
+            overlays={data?.overlays}
+            follow={inReplay && replay.playing}
+            fitKey={`${symbol}:${displayDay}:${replay.session?.id ?? 'browse'}`}
+          />
+        </ChartErrorBoundary>
       </section>
     </div>
   )

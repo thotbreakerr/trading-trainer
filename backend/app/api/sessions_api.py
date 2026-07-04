@@ -137,14 +137,20 @@ def restart(session_id: str) -> dict:
     return _info(session)
 
 
+class SeekIn(BaseModel):
+    to: int  # epoch seconds, clamped to [start_at, end_at]
+
+
 @router.post("/sessions/{session_id}/seek")
-def seek(session_id: str) -> dict:
-    _get(session_id)
-    # Doc §8: no rewind in Practice — scripted lesson Watch steps get their own
-    # navigation when the lesson engine lands.
-    raise HTTPException(
-        status_code=403, detail="seek is available only inside scripted lesson steps"
-    )
+def seek(session_id: str, body: SeekIn) -> dict:
+    session = _get(session_id)
+    # Doc §8: no rewind in Practice — only scripted lesson steps may navigate.
+    if session.mode != "lesson":
+        raise HTTPException(
+            status_code=403, detail="seek is available only inside scripted lesson steps"
+        )
+    sessions.seek_session(session, body.to)
+    return _info(session)
 
 
 @router.delete("/sessions/{session_id}")

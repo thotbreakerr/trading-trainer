@@ -9,8 +9,9 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from app import db
+from app.analysis.indicators import ema_series
 from app.api import deps
-from app.api.serialize import bar_json, day_meta
+from app.api.serialize import bar_json, day_meta, point_json
 from app.config import AppConfig
 from app.marketdata.aggregate import TF_MINUTES
 from app.marketdata.calendar import CalendarUnavailable, MarketCalendar
@@ -102,12 +103,20 @@ def get_bars(
     except CalendarUnavailable as e:
         raise HTTPException(status_code=409, detail=str(e))
     bars = window.bars(symbol, tf)
+    closes = [b.close for b in bars]
+    times = [b.ts for b in bars]
     return {
         "symbol": symbol,
         "tf": tf,
         "day": day.isoformat(),
         "bars": [bar_json(b) for b in bars],
         "days": [day_meta(d) for d in window.days],
+        "overlays": {
+            "vwap": point_json(window.vwap(symbol)),
+            "ema9": point_json(list(zip(times, ema_series(closes, 9)))),
+            "ema20": point_json(list(zip(times, ema_series(closes, 20)))),
+        },
+        "rvol": window.rvol(symbol),
     }
 
 

@@ -26,6 +26,8 @@ export interface BarsResponse {
   day: string
   bars: ApiBar[]
   days: DayMeta[]
+  overlays: { vwap: Point[]; ema9: Point[]; ema20: Point[] }
+  rvol: number | null
 }
 
 export interface SymbolStat {
@@ -69,9 +71,59 @@ export interface StepResponse {
 export interface SessionBarsResponse extends BarsResponse {
   clock: number
   done: boolean
-  overlays: { vwap: Point[]; ema9: Point[]; ema20: Point[] }
-  rvol: number | null
   sma200: number | null
+}
+
+export type LessonStatus = 'available' | 'locked' | 'complete' | 'unavailable'
+
+export interface LessonListItem {
+  module: number
+  title: string
+  summary: string
+  status: LessonStatus
+  status_reason: string | null
+  completed_steps: number
+  total_steps: number
+}
+
+export interface LessonPause {
+  at: string
+  note: string
+  ts: number
+}
+
+export type LessonStepType = 'action' | 'explain' | 'replay' | 'quiz' | 'practice'
+
+export interface LessonStepData {
+  index: number
+  type: LessonStepType
+  title: string
+  body: string
+  completed: boolean
+  pointer?: { target: string; label: string }
+  symbol?: string
+  date?: string | null
+  pauses?: LessonPause[]
+  goal?: string | null
+  question?: string
+  choices?: string[]
+}
+
+export interface LessonDetail {
+  module: number
+  title: string
+  summary: string
+  status: LessonStatus
+  completed_steps: number
+  total_steps: number
+  chart: { symbol: string; date: string } | null
+  steps: LessonStepData[]
+}
+
+export interface CompleteResponse {
+  completed: boolean
+  correct?: boolean
+  explain?: string
 }
 
 export interface KeysStatus {

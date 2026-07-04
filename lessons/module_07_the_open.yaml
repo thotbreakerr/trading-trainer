@@ -1,0 +1,144 @@
+# Module 7 — The open
+# Demo days:
+#   SPY 2024-08-05 — yen-carry unwind: huge fear gap down, opening-range chaos, fill attempt
+#   NVDA 2025-05-29 — earnings gap up that held (gap-and-go archetype)
+#   QQQ 2025-01-27 — practice: mark the OR on a violent gap morning
+module: 7
+title: The open
+summary: Gap types, the opening range, and why the first 5/15/30 minutes set the day's terms.
+chart: { symbol: SPY, date: "2024-08-05" }
+steps:
+  - type: explain
+    title: The most information-dense half hour
+    body: |
+      Overnight, news piles up while the market can't fully trade it. At 9:30 all
+      of it reprices at once. That's why the open is loud, fast — and structured.
+
+      **The gap** is the distance between today's open and yesterday's close
+      (as a %, vs. the prior close). Three archetypes to know:
+
+      - **Gap-and-go** — opens away from yesterday's close and KEEPS going. The
+        news was big enough that early profit-takers get run over.
+      - **Gap fill** — the gap was emotional overreach; price retraces to
+        yesterday's close ("filling the gap") before deciding anything.
+      - **Gap fade** — opens extended, immediately reverses hard the other way.
+
+      **The opening range (OR)** is simply the high and low of the first N minutes
+      (this app uses 15 by default). It's the first real auction of the day — and
+      its breakout is module 8's first setup.
+
+      Clock marks that matter every single day: **9:30** the open, **9:45** OR
+      completion, **~10:00** the reversal window (the first wave of early trades
+      unwinding), **3:50** the flatten warning.
+
+  - type: replay
+    title: "Watch: a panic gap and the fight after it"
+    body: |
+      August 5, 2024 — the yen-carry unwind. Global markets in cascade, SPY opening
+      several percent below Friday's close on enormous volume. Fear opens are a
+      genre; this is a defining example.
+    symbol: SPY
+    date: "2024-08-05"
+    start: open
+    pauses:
+      - at: "09:31"
+        note: |
+          Measure the gap by eye against Friday's close (the dashed level from your
+          module-3 map). Note RVOL. On a gap this violent the FIRST minutes are
+          usually forced selling — margin calls, not decisions. Forced flows
+          exhaust; that exhaustion is tradeable, later.
+      - at: "09:45"
+        note: |
+          Opening range complete. Mark today's OR high and OR low by eye — the
+          day's first boundaries. Everything module 8 teaches starts from this
+          rectangle: break it with volume, or reject from it.
+      - at: "10:05"
+        note: |
+          The 10 o'clock window: the panic sellers are done or dead, and the first
+          serious dip-buyers probe. Watch for the gap-FILL attempt — a push back
+          toward Friday's close. Whether it reaches, stalls halfway, or fails at
+          the OR high tells you which archetype today becomes.
+    completion: finish
+
+  - type: quiz
+    title: Check — gap taxonomy
+    question: A stock opens +4% on earnings, dips for two minutes, reclaims its opening price by 9:35 and pushes to new highs on rising volume. Which archetype is asserting itself?
+    choices:
+      - text: Gap-and-go — the early sell attempt failed and the gap is extending with participation.
+        correct: true
+        explain: |
+          The tell is the failed fade: sellers tried, got absorbed, and the move
+          continued on volume. Gap-and-go days punish everyone waiting for the fill.
+      - text: Gap fill — every gap fills eventually.
+        explain: |
+          "Eventually" can be next month. The FIRST reaction failing (sellers
+          absorbed at the open) is evidence against the fill happening today.
+      - text: Gap fade — it dipped, so the reversal has begun.
+        explain: A two-minute dip that gets reclaimed isn't a fade — it's the trap that FUELS the go. Watch what holds, not what wiggles.
+
+  - type: replay
+    title: "Watch: the friendly version"
+    body: |
+      NVDA on May 29, 2025 again — but this time you're watching ONLY the first
+      thirty minutes' mechanics: gap, OR, first pullback. Compare the texture to
+      the panic open you just studied.
+    symbol: NVDA
+    date: "2025-05-29"
+    start: open
+    pauses:
+      - at: "09:45"
+        note: |
+          OR complete. Mark it. Versus 2024-08-05: is the range tighter relative to
+          the gap? Orderly gap mornings auction politely — buyers step up INSIDE
+          the range instead of everything trading like a fire drill.
+      - at: "10:10"
+        note: |
+          Through the reversal window: did the OR low survive the 10 o'clock test?
+          An earnings gap whose OR low never breaks is the strongest gap-and-go
+          evidence there is — and (spoiler) the exact context where module 8's
+          opening-range-breakout setup earns its "Textbook" grade.
+    completion: finish
+
+  - type: quiz
+    title: Check — the OR as a decision frame
+    question: Why does this course make you wait for the opening range to complete (15 minutes) before trading any open?
+    choices:
+      - text: The OR is the day's first honest auction — its boundaries turn the open's chaos into referenced, testable levels.
+        correct: true
+        explain: |
+          Before the OR exists, there's nothing to break, hold, or reject. After
+          it, every move has a frame: inside, breaking out, or failing back in.
+      - text: Because brokers disable orders until 9:45.
+        explain: Orders work fine at 9:30 — plenty of people donate money there daily. The wait is discipline, not regulation.
+      - text: Volume is too low at the open to trade.
+        explain: The open is the HIGHEST-volume stretch of the day — the issue is direction discovery, not thin tape.
+
+  - type: practice
+    title: "Practice: frame a violent open"
+    body: |
+      January 27, 2025 — QQQ during the DeepSeek shock. Tech gapping down hard;
+      your job is only to FRAME it, not trade it.
+    symbol: QQQ
+    date: "2025-01-27"
+    start: open
+    goal: |
+      1. Before stepping: from your module-3 map, note yesterday's close (the
+         gap-fill target) and pre-market high/low.
+      2. Step to 9:45 and mark the OR high and low by eye.
+      3. Through 10:15, call which archetype is winning — go, fill, or fade — and
+         name the exact level whose break/hold would change your mind.
+      4. Fast-forward the rest of the day at 5× and check yourself.
+
+      Mark complete when you've made — and checked — the call.
+
+  - type: quiz
+    title: Check — the clock
+    question: Which of these times deserves an alarm on every trading day, per this module?
+    choices:
+      - text: "9:45 ET — opening range completes — and ~10:00 ET — the reversal window."
+        correct: true
+        explain: The two structural moments of every morning; module 8's setups key directly off them.
+      - text: "11:30 ET — lunch begins."
+        explain: Lunch matters mostly as a warning (thin tape, module 6) — it's not a decision point.
+      - text: "9:29 ET — one minute before the open."
+        explain: By 9:29 your map should be DONE (module 3's ritual) — the alarm you need is for the auction points after the open.

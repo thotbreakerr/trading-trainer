@@ -1,0 +1,152 @@
+# Module 1 — Reading the chart
+# Demo days:
+#   SPY 2025-06-10 — an ordinary, moderate-range session (clean canvas for basics)
+#   SPY 2025-04-09 — the tariff-pause rally: dramatic candles + volume for the Watch step
+#   QQQ 2025-06-11 — ordinary day for free practice
+module: 1
+title: Reading the chart
+summary: Candlesticks, volume, timeframes, sessions, and the bid-ask spread.
+chart: { symbol: SPY, date: 2025-06-10 }
+steps:
+  - type: action
+    title: Switch to 5-minute candles
+    body: |
+      This is **SPY** — the S&P 500 ETF, the most traded thing on earth — on an
+      ordinary Tuesday. Everything in this app runs on real recorded market data,
+      never simulations.
+
+      Charts show the same day at different *zoom levels*. Start by switching this
+      chart to **5-minute candles**: each candle will summarize five minutes of
+      trading.
+    pointer:
+      target: tf-5m
+      label: Click "5m"
+
+  - type: explain
+    title: What one candle tells you
+    body: |
+      Every candle answers four questions about its slice of time: where price
+      **opened**, the **highest** it traded, the **lowest** it traded, and where it
+      **closed**.
+
+      - The **body** spans open → close. Green means close above open (buyers won
+        the interval); red means close below open.
+      - The **wicks** are the extremes that didn't hold. A long upper wick says
+        "price went up there and got sold back down." A long lower wick says
+        "sellers pushed it down and buyers reclaimed it."
+
+      Below the candles is **volume** — how many shares changed hands in that
+      interval. A big candle on big volume means conviction; a big candle on thin
+      volume is suspect.
+
+      The shaded areas on the chart are the **sessions**: pre-market (4:00–9:30 ET),
+      regular hours, and after-hours (16:00–20:00 ET). Most of the volume — and most
+      of your trading — happens in regular hours.
+
+  - type: action
+    title: Zoom into 1-minute candles
+    body: |
+      Now switch to **1-minute candles**. Notice the trade-off: more detail, more
+      noise. Five of these build one of the 5-minute candles you just saw — same
+      data, different summary. Day traders constantly move between timeframes:
+      higher ones for context, lower ones for timing.
+    pointer:
+      target: tf-1m
+      label: Click "1m"
+
+  - type: quiz
+    title: Check — candle anatomy
+    question: |
+      A 5-minute candle prints a small red body with a very long **upper** wick.
+      What happened during those five minutes?
+    choices:
+      - text: Price rallied hard, but sellers knocked it all the way back down before the candle closed.
+        correct: true
+        explain: |
+          Exactly. The high of the wick shows how far buyers pushed; the small red
+          body near the bottom shows the close gave almost all of it back. That's
+          rejection of higher prices.
+      - text: Buyers were in control the whole time and the candle closed strong.
+        explain: |
+          A candle that buyers controlled closes near its HIGH — big green body,
+          little upper wick. A long upper wick with a red close is the opposite story.
+      - text: Nothing traded during that interval.
+        explain: |
+          If nothing traded there'd be no candle at all (you'll see real gaps like
+          that in thin pre-market stretches). A candle with range means trades happened.
+
+  - type: explain
+    title: The bid, the ask, and what trading actually costs
+    body: |
+      At any instant there are two prices: the **bid** (highest anyone will pay) and
+      the **ask** (lowest anyone will sell for). The gap between them is the
+      **spread**.
+
+      Buy *right now* and you pay the ask. Sell *right now* and you get the bid.
+      That round trip costs you the spread before the price has moved at all — it's
+      the toll booth of trading.
+
+      In the ultra-liquid names on your watchlist (SPY, QQQ, AAPL, NVDA…) the spread
+      is usually a **penny or two** — which is exactly why this app trades only
+      those. In thin stocks the spread itself can eat your whole edge.
+
+  - type: replay
+    title: "Watch: candles telling a story"
+    body: |
+      Now watch candles narrate one of the wildest sessions of the decade —
+      **April 9, 2025**, the day a tariff pause was announced mid-afternoon and the
+      S&P ripped almost 10% in hours. Use the pauses to read the tape; play at 5×
+      between them.
+    symbol: SPY
+    date: "2025-04-09"
+    start: open
+    pauses:
+      - at: "09:45"
+        note: |
+          First 15 minutes. Look at the candle bodies and wicks around the open —
+          wide ranges, heavy volume bars below. Markets had been in free-fall for
+          days; nobody agreed on price. Disagreement = big candles.
+      - at: "12:00"
+        note: |
+          Compare the last hour's candles to the open. Ranges narrower? Volume bars
+          shorter? Midday often goes quiet — the same chart-reading rules apply, the
+          tape just whispers instead of shouting.
+      - at: "13:45"
+        note: |
+          Around now the tariff-pause headline hit. Step forward a few bars at a
+          time and watch what conviction looks like: stacked green bodies closing
+          near their highs, volume bars exploding, barely any upper wicks. When
+          candles and volume agree like this, the move is real.
+    completion: finish
+
+  - type: quiz
+    title: Check — sessions and timeframes
+    question: Why does a day trader look at a 15-minute chart if they enter on the 1-minute chart?
+    choices:
+      - text: Higher timeframes give context — trend and levels — while lower ones give precise timing inside that context.
+        correct: true
+        explain: |
+          That's the workflow this whole course builds on: context from above,
+          execution from below.
+      - text: The 15-minute chart updates faster than the 1-minute chart.
+        explain: It's the other way round — a 15m candle only completes every 15 minutes.
+      - text: Brokers require it.
+        explain: No rule involved — it's just how professionals separate context from timing.
+
+  - type: practice
+    title: "Practice: drive the tape yourself"
+    body: |
+      Free replay — no script, no pointer. Your first rep at reading a day.
+    symbol: QQQ
+    date: "2025-06-11"
+    start: open
+    goal: |
+      Step through the first hour of QQQ at your own pace (mix 1× play and single
+      steps). While you do:
+
+      1. Watch how each 5m candle is assembled from 1m candles — switch timeframes
+         at least once.
+      2. Find the **high and low of the first hour** by eye.
+      3. Notice where volume was loudest and what candles did there.
+
+      When you've done all three, mark the step complete.

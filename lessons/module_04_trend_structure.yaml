@@ -1,0 +1,136 @@
+# Module 4 — Trend & structure
+# Demo days:
+#   SPY 2024-12-18 — hawkish FOMC: textbook afternoon downtrend (LL/LH chain)
+#   MSFT 2025-05-01 — post-earnings gap-and-trend up (HH/HL above the EMAs)
+#   SPY 2025-04-09 — practice: call the trend at checkpoints on the historic rally
+module: 4
+title: Trend & structure
+summary: Higher highs and higher lows, the 9/20 EMA pair, and the 200-SMA context filter.
+chart: { symbol: SPY, date: "2024-12-18" }
+steps:
+  - type: explain
+    title: Trend is structure, not opinion
+    body: |
+      An **uptrend** is a chart making **higher highs and higher lows** (HH/HL). A
+      **downtrend** makes lower lows and lower highs (LL/LH). That's the entire
+      definition — everything else is commentary.
+
+      Two moving averages summarize it at a glance:
+
+      - **9 EMA** — the fast pulse. In a healthy trend, pullbacks kiss it and go.
+      - **20 EMA** — the slow spine. Deeper pullbacks find it. When 9 is above 20
+        and both slope up, structure is almost always HH/HL; flipped and falling,
+        LL/LH.
+      - When price is *tangled* in flat EMAs — no trend. Chop. The most honest
+        signal this module teaches is "not trending, stand aside."
+
+      One more dial, from the daily chart: the **200-day SMA**. Above it, the tide
+      leans up; below it, down. You'll see it as a context number, not a line to
+      trade against.
+
+  - type: action
+    title: Put the EMAs to work
+    body: |
+      Switch to the **5-minute** chart — the timeframe this course uses for trend
+      structure. The blue line is the 9 EMA, the purple one the 20 EMA. Look at how
+      price is braided through them on this day so far.
+    pointer:
+      target: tf-5m
+      label: Click "5m"
+
+  - type: replay
+    title: "Watch: an afternoon trend day (FOMC)"
+    body: |
+      December 18, 2024. The Fed cut rates but talked hawkish, and the S&P unwound
+      hard into the close — a clinic in downtrend structure.
+    symbol: SPY
+    date: "2024-12-18"
+    start: open
+    pauses:
+      - at: "11:30"
+        note: |
+          Pre-announcement drift. Note the EMAs: flat, braided, price crossing them
+          both ways — the textbook picture of "no trend yet." Trying to trade trend
+          here is donating money. Fed days sleep until 2 PM.
+      - at: "14:05"
+        note: |
+          Decision's out. Watch the first impulse: does price break structure (a
+          lower low below the day's range) and do the EMAs uncross and slope? The
+          first minutes after a catalyst often SET the structure for the rest of
+          the day.
+      - at: "14:45"
+        note: |
+          Press conference in progress. If the downtrend is on: every bounce should
+          stall at or below the 9/20 EMA band and roll to a LOWER high, then a lower
+          low. Step bar by bar and count the LL/LH chain — that repeating staircase
+          is what module 8 will teach you to trade.
+    completion: finish
+
+  - type: quiz
+    title: Check — reading structure
+    question: Price makes a lower low, bounces to a lower high that stalls right at the falling 20 EMA, then rolls over again. What is this?
+    choices:
+      - text: A downtrend behaving exactly as downtrends do — the bounce was a pullback, not a reversal.
+        correct: true
+        explain: |
+          LL → LH at the falling EMAs → next leg. Until the chart prints a HIGHER
+          high, bounces in a downtrend are supply.
+      - text: A reversal — any bounce after a low is bullish.
+        explain: A reversal needs a HIGHER high (and usually a reclaim of the EMAs). A bounce that dies at a lower high is the trend refueling.
+      - text: Chop — two swings mean nothing.
+        explain: Chop is FLAT EMAs and overlapping swings. This sequence has direction, slope, and a repeating staircase.
+
+  - type: replay
+    title: "Watch: the same rules, pointed up"
+    body: |
+      May 1, 2025 — Microsoft the morning after a blowout earnings report. Gap up,
+      then a day of textbook UPtrend structure. Same rules as the FOMC day, mirrored.
+    symbol: MSFT
+    date: "2025-05-01"
+    start: open
+    pauses:
+      - at: "09:45"
+        note: |
+          Gap-up open. The first question of module 7 will be "does the gap hold?" —
+          for now just watch structure form: is the first pullback finding buyers
+          ABOVE the open? Higher lows before higher highs — that's how up-days start.
+      - at: "13:00"
+        note: |
+          Scan back over the morning: pullbacks tagging the 9/20 band and bouncing,
+          each swing high above the last. Boring, repetitive, tradeable. Strong
+          trends are supposed to look unexciting bar by bar.
+    completion: finish
+
+  - type: quiz
+    title: Check — the EMA dashboard
+    question: The 9 EMA is below the 20 EMA, both are falling, and price just failed at the 9 from underneath. A friend says "it's so oversold, I'm buying." What does this module say?
+    choices:
+      - text: The structure says downtrend — betting on a reversal against a working LL/LH chain is fighting the tape.
+        correct: true
+        explain: |
+          "Oversold" is an opinion; lower lows are a fact. Counter-trend trades are
+          a different (harder) game than anything this course teaches.
+      - text: Buy — EMAs are lagging indicators so they don't matter.
+        explain: They lag, which is exactly why they're honest — they only flip after structure actually changes. Nothing has changed yet.
+      - text: Flip a coin — structure can't be read objectively.
+        explain: HH/HL vs LL/LH is as objective as chart reading gets. That objectivity is why this module leans on it.
+
+  - type: practice
+    title: "Practice: call the trend at three checkpoints"
+    body: |
+      April 9, 2025 — the tariff-pause day from module 1, now through a
+      structure lens.
+    symbol: SPY
+    date: "2025-04-09"
+    start: open
+    goal: |
+      Play the day and PAUSE at roughly **10:30**, **13:30**, and **15:00**. At each
+      checkpoint, say out loud (yes, actually):
+
+      1. Uptrend, downtrend, or chop — using HH/HL / LL/LH only.
+      2. Where price is relative to the 9/20 EMAs, and their slope.
+      3. What would have to print to change your call.
+
+      The afternoon flips this day on its head — if your 13:30 and 15:00 answers
+      differ, explain to yourself exactly WHICH bar changed the structure. Then mark
+      complete.

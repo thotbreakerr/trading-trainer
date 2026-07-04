@@ -1,7 +1,10 @@
 import type {
   BackfillProgressInfo,
   BarsResponse,
+  CompleteResponse,
   KeysStatus,
+  LessonDetail,
+  LessonListItem,
   SessionBarsResponse,
   SessionInfo,
   StepResponse,
@@ -54,4 +57,10 @@ export const api = {
     getJson<SessionBarsResponse>(`/api/sessions/${id}/bars?tf=${tf}`),
   restartSession: (id: string) => postJson<SessionInfo>(`/api/sessions/${id}/restart`),
   deleteSession: (id: string) => fetch(`/api/sessions/${id}`, { method: 'DELETE' }),
+  lessons: () => getJson<{ modules: LessonListItem[] }>('/api/lessons'),
+  lesson: (module: number) => getJson<LessonDetail>(`/api/lessons/${module}`),
+  completeStep: (module: number, step: number, body?: { answer?: number; grade?: string }) =>
+    postJson<CompleteResponse>(`/api/lessons/${module}/steps/${step}/complete`, body ?? {}),
+  lessonSession: (module: number, step: number) =>
+    postJson<SessionInfo>(`/api/lessons/${module}/steps/${step}/session`),
 }

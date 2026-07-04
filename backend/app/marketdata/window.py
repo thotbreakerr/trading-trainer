@@ -22,6 +22,7 @@ from datetime import date, datetime, timedelta
 from typing import Protocol
 
 from app.analysis.indicators import et_minutes, rvol_at, sma, vwap_series
+from app.analysis.levels import Levels, build_levels
 from app.marketdata import store
 from app.marketdata.aggregate import TF_MINUTES, aggregate_bars
 from app.marketdata.calendar import CalendarUnavailable, MarketCalendar
@@ -143,3 +144,9 @@ class BarWindow:
     def sma200(self, symbol: str) -> float | None:
         """SMA200 of prior daily closes — daily trend context (doc §6.4)."""
         return sma([b.close for b in self.daily(symbol, 200)], 200)
+
+    def levels(self, symbol: str) -> Levels:
+        """Key levels at the clock: prior-day H/L/C plus pre-market H/L built
+        only from the anchor day's visible bars (doc §6.3)."""
+        today = [b for b in self.bars_1m(symbol) if et_date(b.ts) == self.anchor.day]
+        return build_levels(self.daily(symbol, 1), today)

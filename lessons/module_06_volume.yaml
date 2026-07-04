@@ -1,0 +1,122 @@
+# Module 6 — Volume analysis
+# Demo days:
+#   NVDA 2025-01-27 — DeepSeek shock: generational RVOL, panic volume mechanics
+#   META 2025-01-30 — post-earnings session for practice (elevated but orderly volume)
+module: 6
+title: Volume analysis
+summary: Relative volume, confirmation vs. divergence — how many people actually showed up.
+chart: { symbol: NVDA, date: "2025-01-27" }
+steps:
+  - type: explain
+    title: Volume is attendance
+    body: |
+      Price says what happened; **volume says how many people meant it.**
+
+      The raw number is useless on its own — is 40 million shares a lot? For SPY
+      it's a quiet hour; for a small-cap it's a year. Volume only means something
+      **relative to what's normal**, which is why this app shows **RVOL** —
+      relative volume:
+
+      > RVOL = volume traded so far today ÷ what this symbol has *usually* traded
+      > by this exact time of day (average of the last 20 sessions).
+
+      The "by this time of day" part matters. Markets trade a U-shape — heavy at
+      the open, dead at lunch, heavy at the close — so comparing 10:00's volume to
+      a full day would always look thin. RVOL compares 10:00 to *other 10:00s*.
+
+      Rules of thumb this course uses: **RVOL ≈ 1** — a normal day; **1.5–2** —
+      something's going on; **> 2** — the crowd showed up; news, earnings, or a
+      real institutional move.
+
+  - type: replay
+    title: "Watch: what panic attendance looks like"
+    body: |
+      Back to January 27, 2025 — the DeepSeek shock, this time watching the volume
+      pane and the RVOL chip instead of the candles.
+    symbol: NVDA
+    date: "2025-01-27"
+    start: open
+    pauses:
+      - at: "09:35"
+        note: |
+          Five minutes in. Look at the height of the volume bars versus every
+          visible prior day, and check the RVOL chip in the header. This is what
+          "the whole market is in this name today" reads like. Moves on volume like
+          this have follow-through because someone REAL is on the other side.
+      - at: "12:30"
+        note: |
+          Even lunch is loud today — compare these midday bars to a normal day's
+          open. When lunch trades like an open, the story isn't over. Institutions
+          don't finish repositioning billions in one morning.
+      - at: "15:30"
+        note: |
+          Into the close: does volume swell again? Day-one panic usually ends with
+          a crescendo — funds forcing positions before the bell. Note where the day
+          closes relative to its range; module 7's gap lessons will pick this
+          thread up tomorrow morning.
+    completion: finish
+
+  - type: quiz
+    title: Check — reading RVOL
+    question: At 10:00, a stock is up 2% on RVOL 0.6. What's the volume telling you about the move?
+    choices:
+      - text: Attendance is thin — a 2% move that nobody showed up for is easy to doubt and easy to reverse.
+        correct: true
+        explain: |
+          Price moved but the crowd didn't come. Thin moves get unwound by the
+          first real order. This is DIVERGENCE — price saying one thing, volume
+          declining to confirm it.
+      - text: RVOL under 1 makes the move MORE meaningful — fewer sellers.
+        explain: Low volume means fewer of EVERYONE. Conviction shows up as participation, not absence.
+      - text: Volume doesn't matter if price is moving.
+        explain: Price without volume is a rumor. Volume is what makes it a fact.
+
+  - type: explain
+    title: Confirmation, divergence, climax
+    body: |
+      Three volume patterns to carry forward:
+
+      1. **Confirmation** — price breaks a level and volume EXPANDS. The crowd
+         endorses the move. Module 8's "Textbook" grades literally require it.
+      2. **Divergence** — price pushes on but each leg comes on LESS volume.
+         The move is running out of participants; treat targets, not entries.
+      3. **Climax** — a huge spike in volume after an extended move, often with a
+         monster candle. That's not strength — it's everyone who was going to act,
+         acting at once. Frequently marks the turn.
+
+      And the one that saves the most money: **a breakout on RVOL below normal is
+      a trap until proven otherwise.** No attendance, no trend. The coach in this
+      app will flag exactly that ("low quality — likely trap") when you unlock it.
+
+  - type: practice
+    title: "Practice: attendance-check every leg"
+    body: |
+      January 30, 2025 — Meta the morning after earnings. Elevated volume, but
+      orderly: a fair test tape.
+    symbol: META
+    date: "2025-01-30"
+    start: open
+    goal: |
+      Play the day at 2×. Each time price makes a distinct leg (a push to new
+      session highs or lows), pause and grade its attendance:
+
+      - **Confirmed** — leg came with expanding volume bars
+      - **Divergent** — new price extreme, shrinking bars
+      - **Climactic** — extreme spike after an extended run
+
+      Also glance at the RVOL chip at 10:00, 12:30, and 15:30 and note its drift.
+      Mark complete once you've graded at least four legs.
+
+  - type: quiz
+    title: Check — the trap filter
+    question: A stock breaks yesterday's high at 11:00. RVOL reads 0.7 and the breakout bar's volume is smaller than the last three bars. Module 8 will call this setup...
+    choices:
+      - text: "Low quality — likely a trap. No participation at a decision point means the break can't be trusted."
+        correct: true
+        explain: |
+          Breakouts need buyers behind them. This one has a price print and an
+          empty room — the classic setup that reverses on the next real order.
+      - text: Textbook — price broke the level, that's all that matters.
+        explain: The level break is necessary, not sufficient. "Textbook" in this app REQUIRES the volume confluence.
+      - text: Unreadable — volume can't be judged mid-day.
+        explain: That's precisely what time-of-day RVOL fixes — 11:00 is compared to other 11:00s.

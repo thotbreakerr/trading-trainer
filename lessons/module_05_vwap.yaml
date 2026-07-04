@@ -1,0 +1,130 @@
+# Module 5 — VWAP
+# Demo days:
+#   NVDA 2025-05-29 — post-earnings gap-up that held above VWAP all day
+#   TSLA 2025-04-23 — gap-up with repeated VWAP pullbacks for practice
+module: 5
+title: VWAP
+summary: The volume-weighted average price — the intraday anchor everything else orbits.
+chart: { symbol: NVDA, date: "2025-05-29" }
+steps:
+  - type: explain
+    title: The day's fair price
+    body: |
+      **VWAP** — volume-weighted average price — is the average price of every
+      share traded today, weighted by size. It's the gold line on your chart,
+      restarting fresh at each open.
+
+      Why one line earns its own module:
+
+      - **Institutions are graded against it.** A fund working a big buy order all
+        day is judged on beating VWAP — so their algorithms literally buy below it
+        and ease off above it. The line *causes* behavior, which is why it works.
+      - **It's the day's control line.** Price above VWAP: buyers in control —
+        pullbacks to it tend to get bought. Below: sellers in control — rallies to
+        it tend to get sold.
+      - **It's self-updating support/resistance** that every participant computes
+        identically. No settings, no argument.
+
+      Two vocabulary words for the rest of the course: a **VWAP hold** (price pulls
+      back to the line and it holds) and a **VWAP reclaim** (price fights back
+      through it and stays there — control just changed hands).
+
+  - type: action
+    title: Find the anchor
+    body: |
+      Switch to the **5-minute** view and find the gold VWAP line. Note where price
+      opened relative to it this morning and which side it's spent the day on. One
+      glance at that relationship tells you who's winning the day.
+    pointer:
+      target: tf-5m
+      label: Click "5m"
+
+  - type: replay
+    title: "Watch: a gap that VWAP carried all day"
+    body: |
+      May 29, 2025 — NVIDIA the morning after another blowout earnings report.
+      Days like this are why "above VWAP = don't fight it" became a cliché.
+    symbol: NVDA
+    date: "2025-05-29"
+    start: open
+    pauses:
+      - at: "09:40"
+        note: |
+          Gapped up and opened ABOVE VWAP. First lesson: on strong days price often
+          simply never gives the line back. Note the gap between price and VWAP —
+          extension. Chasing extension is module 10's cautionary tale; waiting for
+          the pullback is this module's craft.
+      - at: "10:30"
+        note: |
+          Look for the first real test — price easing back toward the gold line.
+          THE tell of this module: does the touch produce a wick-and-bounce (buyers
+          defending their average) or a slice-through (control changing)? Step bar
+          by bar through the touch.
+      - at: "14:00"
+        note: |
+          However many times VWAP was tested today, count the pattern: touch,
+          defend, new leg. When the average keeps rising and price keeps respecting
+          it, institutions are still accumulating. That persistence IS the signal.
+    completion: finish
+
+  - type: quiz
+    title: Check — which side matters
+    question: A stock has spent the whole morning below a falling VWAP. It rallies into the line at lunch. This module's default read?
+    choices:
+      - text: Rallies into VWAP from below are selling opportunities until price proves a reclaim — sellers defend their average too.
+        correct: true
+        explain: |
+          The line works both directions. Below a falling VWAP, the anchor is
+          resistance; only a real reclaim (through it AND holding) flips the story.
+      - text: Buy the touch — VWAP is support.
+        explain: VWAP is support only when price lives ABOVE it. From below, the first touch is where trapped longs sell to break even and shorts re-load.
+      - text: VWAP means nothing at lunch.
+        explain: Volume thins midday but the day's average is the day's average — the reaction at the line still tells you who's in control.
+
+  - type: explain
+    title: Reclaims, rejections, and the chase tax
+    body: |
+      Three refinements before you practice:
+
+      1. **A touch is not a signal.** The *reaction* is. Wick + hold = defense.
+         Close through + hold = reclaim/loss of the line. One bar rarely proves it —
+         let the next bar or two vote.
+      2. **Reclaims are events.** A morning below VWAP followed by a clean reclaim
+         that HOLDS is one of the strongest tells that the day's story changed —
+         it's half of module 8's "VWAP reclaim" setup.
+      3. **Distance from VWAP is a tax meter.** Entries far above the line have a
+         worse stop (back at the line) and worse odds (mean reversion). The
+         further from the anchor, the more you're paying to participate. The grader
+         in this app literally checks it.
+
+  - type: practice
+    title: "Practice: score every VWAP touch"
+    body: |
+      April 23, 2025 — Tesla gapping up hard on Musk's back-to-work-at-Tesla
+      remarks, then spending the day negotiating with its VWAP.
+    symbol: TSLA
+    date: "2025-04-23"
+    start: open
+    goal: |
+      Play the session at 2×, and every time price comes within kissing distance of
+      the gold line, pause and score the touch:
+
+      - **Defense** (wick/bounce, side unchanged)
+      - **Reclaim/loss** (close through and hold — control flipped)
+      - **Undecided** (chop across the line — stand aside)
+
+      Keep a simple tally on paper. At the close, review: after each *defense*, did
+      the prior trend resume? After a *reclaim/loss*, did the day's character
+      actually change? Mark complete when you've scored at least four touches.
+
+  - type: quiz
+    title: Check — the anchor habit
+    question: Tomorrow at 10:00 you glance at a chart for five seconds. What's the single highest-value thing to check, per this module?
+    choices:
+      - text: Which side of VWAP price is on — and how it behaved at the last touch.
+        correct: true
+        explain: One glance, one line, and you know who's in control and what they last did about it. That's why it's the anchor.
+      - text: The exact P&L of the last five candles.
+        explain: Candles matter (module 1) but without the anchor you don't know which SIDE'S candles you're reading.
+      - text: Whether the stock is up or down from yesterday.
+        explain: Useful (that's the gap, module 7) — but intraday control lives at VWAP, not at yesterday's close.

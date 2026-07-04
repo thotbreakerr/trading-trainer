@@ -12,7 +12,12 @@ export function TimeframeSwitcher({
   return (
     <div className="tf-switcher">
       {TFS.map((t) => (
-        <button key={t} className={t === tf ? 'active' : ''} onClick={() => onChange(t)}>
+        <button
+          key={t}
+          data-pointer-id={`tf-${t}`}
+          className={t === tf ? 'active' : ''}
+          onClick={() => onChange(t)}
+        >
           {t}
         </button>
       ))}
