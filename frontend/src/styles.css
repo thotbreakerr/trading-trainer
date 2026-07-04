@@ -228,6 +228,84 @@ main { min-height: 0; overflow: hidden; }
 .practice-sim { display: grid; gap: 12px; }
 @media (max-width: 1100px) { .practice-layout { grid-template-columns: 1fr; } }
 
+/* ------------------------------------------------------------- market day */
+.md-takeover { height: 100%; overflow-y: auto; padding: 20px 28px; }
+.view-chips { display: inline-flex; gap: 4px; margin-bottom: 12px; }
+.view-chips button {
+  background: none; border: 1px solid var(--border); color: var(--muted);
+  padding: 4px 12px; border-radius: 999px; cursor: pointer; font-size: 12px;
+  font-weight: 600; text-transform: capitalize;
+}
+.view-chips button.active { color: var(--text); border-color: var(--accent); background: var(--panel-2); }
+.chart-header .view-chips { margin-bottom: 0; }
+.view-head { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.view-head h2 { margin: 0; }
+
+.delay-chip {
+  font-size: 12px; font-weight: 700; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 4px; padding: 2px 8px;
+  font-variant-numeric: tabular-nums;
+}
+.stale-banner { color: var(--warn); font-size: 13px; font-weight: 600; }
+
+.callout-stack { display: grid; gap: 10px; }
+.callout-card {
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  display: grid; gap: 6px; font-size: 13px; background: var(--panel-2);
+}
+.callout-card.status-invalidated { border-color: var(--down); opacity: 0.9; }
+.callout-card.status-expired { opacity: 0.55; }
+.callout-card.status-acted { border-color: var(--up); }
+.callout-head { display: flex; align-items: center; gap: 8px; }
+.callout-type { color: var(--muted); font-size: 12px; }
+.callout-prices { font-variant-numeric: tabular-nums; font-size: 12px; }
+.callout-foot { display: flex; align-items: center; gap: 10px; }
+.countdown { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+.callout-card .act { padding: 4px 10px; font-size: 12px; }
+.invalidated-note { color: var(--down); font-size: 12px; }
+.acted-note { color: var(--up); font-size: 12px; }
+.callout-fired { font-size: 11px; }
+.grade-chip {
+  border: 1px solid var(--border); border-radius: 4px; padding: 1px 8px;
+  font-size: 11px; font-weight: 700; background: none; color: var(--muted); cursor: pointer;
+}
+.grade-chip.textbook { color: var(--up); border-color: var(--up); }
+.grade-chip.solid { color: var(--accent); border-color: var(--accent); }
+.grade-chip.risky { color: var(--warn); border-color: var(--warn); }
+.grade-chip.reckless { color: var(--down); border-color: var(--down); }
+.locked-card { display: flex; gap: 10px; align-items: center; opacity: 0.85; }
+.lock-icon { font-size: 18px; }
+.locked-title em { color: var(--accent); font-style: normal; font-weight: 700; }
+.locked-sub { color: var(--muted); font-size: 12px; }
+
+.brief-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.brief-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: var(--panel); }
+.brief-head { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.brief-grid { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 12px; }
+.brief-grid span:nth-child(odd) { color: var(--muted); }
+.brief-grid span:nth-child(even) { font-variant-numeric: tabular-nums; text-align: right; }
+.brief-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+@media (max-width: 1000px) { .brief-columns { grid-template-columns: 1fr; } }
+.focus-row { padding: 8px 0; border-bottom: 1px solid var(--border); line-height: 1.5; }
+.time-row { display: flex; gap: 10px; align-items: baseline; padding: 3px 0; font-variant-numeric: tabular-nums; }
+.time-row span:first-child { color: var(--muted); min-width: 190px; }
+
+.recap { max-width: 1100px; }
+.recap-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 18px; }
+.recap-table th {
+  text-align: left; color: var(--muted); font-weight: 600; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.4px; padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.recap-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.recap-table tr.taken td { background: rgba(41, 98, 255, 0.05); }
+.stat-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.stat-card {
+  border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  display: grid; gap: 4px; background: var(--panel);
+}
+.stat-card strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+
 /* ---------------------------------------------------------------- lessons */
 .lesson-takeover {
   position: fixed; inset: 0; z-index: 40; background: var(--bg);

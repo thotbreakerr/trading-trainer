@@ -159,6 +159,134 @@ export interface OrderRequest {
   risk_pct?: number
 }
 
+export interface CalloutData {
+  id: string
+  locked: boolean
+  symbol: string
+  fired_ts: string
+  status: string
+  unlock_module?: number | null
+  setup_type?: string
+  direction?: 'long' | 'short'
+  entry?: number | null
+  stop?: number | null
+  target?: number | null
+  rr?: number | null
+  grade?: GradeInfo | null
+  watch_seconds_left?: number
+  invalidated_reason?: string | null
+  outcome?: string | null
+  outcome_r?: number | null
+  tradeable?: boolean
+  context?: Record<string, unknown>
+}
+
+export interface MarketDayState {
+  market: { state: string; display_day?: string; reason?: string }
+  poll: {
+    stale: boolean
+    stale_since: string | null
+    error: string | null
+    last_success: string | null
+  }
+  trading_unlocked: boolean
+  session: { day: string; clock: number; delay_minutes: number } | null
+  callouts: CalloutData[]
+  account: {
+    equity: number
+    positions: { symbol: string; qty: number; avg_price: number; unrealized: number }[]
+    flattened: boolean
+  } | null
+}
+
+export interface BriefingCard {
+  symbol: string
+  last_price?: number | null
+  gap_pct?: number | null
+  premarket_rvol?: number | null
+  premarket_high?: number | null
+  premarket_low?: number | null
+  prior_high?: number | null
+  prior_low?: number | null
+  prior_close?: number | null
+  sma200?: number | null
+  daily_trend?: string
+  nearest_level?: { name: string; price: number; distance_pct: number }
+  error?: string
+}
+
+export interface BriefingData {
+  day: string
+  half_day: boolean
+  created_at: string
+  cards: BriefingCard[]
+  focus: { symbol: string; why: string }[]
+  game_plan: {
+    setups_in_play: string[]
+    key_times: Record<string, { epoch: number; ct: string; et: string }>
+    note: string
+  }
+}
+
+export interface RecapLedgerItem {
+  symbol: string
+  fired_et: string
+  setup_type: string
+  direction: string
+  entry: number | null
+  stop: number | null
+  target: number | null
+  rr: number | null
+  grade: string | null
+  status: string
+  taken: number
+  user_grade?: string | null
+  outcome: string | null
+  outcome_r: number | null
+  note: string | null
+}
+
+export interface RecapTrade {
+  symbol: string
+  direction: string
+  qty: number
+  entry_et: string
+  entry_price: number
+  exit_price: number | null
+  exit_reason: string | null
+  r_multiple: number | null
+  grade: string | null
+  review: { symbol: string; day: string; start_at: number }
+}
+
+export interface TrajectoryData {
+  cumulative: Record<string, number | null>
+  rolling_20: Record<string, number | null>
+  grade_distribution: Record<string, number>
+  grade_by_day: { day: string; grades: Record<string, number> }[]
+  equity_curve_r: { day: string; cum_r: number }[]
+}
+
+export interface RecapData {
+  day: string
+  ledger: RecapLedgerItem[]
+  ledger_computed_on_demand: boolean
+  trades: RecapTrade[]
+  plan_vs_reality: {
+    taken: boolean
+    focus_was?: string[]
+    reality?: {
+      symbol: string
+      planned_gap_pct?: number | null
+      day_change_pct?: number
+      range_pct?: number
+      broke_pdh?: boolean
+      broke_pdl?: boolean
+    }[]
+  }
+  trajectory: TrajectoryData
+}
+
 export type LessonStatus = 'available' | 'locked' | 'complete' | 'unavailable'
 
 export interface LessonListItem {

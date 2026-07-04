@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 
 from app.marketdata.calendar import MarketCalendar
-from app.marketdata.window import BAR_SECONDS, BarWindow, ReplayClock
+from app.marketdata.window import BAR_SECONDS, BarWindow, Clock, ReplayClock
 from app.models import Bar, CalendarDay
 from app.sim.engine import SimEngine
 
@@ -46,12 +46,12 @@ class LessonCtx:
 @dataclass
 class Session:
     id: str
-    mode: str  # 'replay' | 'lesson' | 'review'  (marketday joins later)
+    mode: str  # 'replay' | 'lesson' | 'review' | 'marketday'
     symbols: list[str]
     day: date
     cal_day: CalendarDay
     lookback_days: int
-    clock: ReplayClock
+    clock: Clock  # ReplayClock, or DelayedLiveClock for Market Day
     start_at: datetime
     end_at: datetime  # anchor session close — the step loop stops here
     last_seen: dict[str, datetime]  # per-symbol high-water mark (a TIME, not a bar)
@@ -62,7 +62,7 @@ class Session:
 
     @property
     def done(self) -> bool:
-        return self.clock.current >= self.end_at
+        return self.clock.now() >= self.end_at
 
 
 @dataclass
@@ -89,6 +89,7 @@ def create_session(
     mode: str = "replay",
     sim: SimEngine | None = None,
     lesson_ctx: LessonCtx | None = None,
+    clock: Clock | None = None,  # Market Day passes a DelayedLiveClock
 ) -> Session:
     cal_day = calendar.day(day)
     if cal_day is None:
@@ -103,7 +104,7 @@ def create_session(
         day=day,
         cal_day=cal_day,
         lookback_days=lookback_days,
-        clock=ReplayClock(current=start_at),
+        clock=clock if clock is not None else ReplayClock(current=start_at),
         start_at=start_at,
         end_at=cal_day.session_close_utc(),
         last_seen={s.upper(): initial_cutoff for s in symbols},
@@ -128,44 +129,58 @@ def delete_session(session_id: str) -> None:
         _SESSIONS.pop(session_id, None)
 
 
+def _reveal_and_process(session: Session, window: BarWindow) -> StepResult:
+    """The shared pipeline: reveal newly visible bars, feed the sim, run EOD
+    checks. Replay calls it after advancing the clock; the Market Day poller
+    calls it as-is — the clock advances by itself (doc §11)."""
+    cutoff = window.cutoff()
+    new_bars: dict[str, list[Bar]] = {}
+    events: list[dict] = []
+    for symbol in session.symbols:
+        since = session.last_seen[symbol] + timedelta(seconds=BAR_SECONDS)
+        revealed = window.bars_1m(symbol, since=since) if since <= cutoff else []
+        new_bars[symbol] = revealed
+        session.last_seen[symbol] = max(cutoff, session.last_seen[symbol])
+        if session.sim is not None:
+            for bar in revealed:
+                events += [e.to_json() for e in session.sim.on_bar(bar)]
+    if session.sim is not None:
+        events += [
+            e.to_json() for e in session.sim.on_clock(session.clock.now(), session.cal_day)
+        ]
+    return StepResult(
+        clock=session.clock.now(),
+        cutoff=cutoff,
+        done=session.done,
+        new_bars=new_bars,
+        events=events,
+    )
+
+
 def step_session(session: Session, window: BarWindow, bars: int = 1) -> StepResult:
     """Advance the clock N whole bars and reveal exactly what became visible.
     Deterministic: same day + same steps => identical bar streams."""
     bars = max(1, min(bars, MAX_STEP_BARS))
     with session.lock:
+        assert isinstance(session.clock, ReplayClock), "only replay clocks can be stepped"
         if not session.done:
             session.clock.current = min(
                 session.clock.current + timedelta(seconds=BAR_SECONDS * bars),
                 session.end_at,
             )
-        cutoff = window.cutoff()
-        new_bars: dict[str, list[Bar]] = {}
-        events: list[dict] = []
-        for symbol in session.symbols:
-            since = session.last_seen[symbol] + timedelta(seconds=BAR_SECONDS)
-            revealed = window.bars_1m(symbol, since=since) if since <= cutoff else []
-            new_bars[symbol] = revealed
-            session.last_seen[symbol] = max(cutoff, session.last_seen[symbol])
-            if session.sim is not None:
-                for bar in revealed:
-                    events += [e.to_json() for e in session.sim.on_bar(bar)]
-        if session.sim is not None:
-            events += [
-                e.to_json()
-                for e in session.sim.on_clock(session.clock.current, session.cal_day)
-            ]
-        return StepResult(
-            clock=session.clock.current,
-            cutoff=cutoff,
-            done=session.done,
-            new_bars=new_bars,
-            events=events,
-        )
+        return _reveal_and_process(session, window)
+
+
+def tick_session(session: Session, window: BarWindow) -> StepResult:
+    """Delayed-live tick: no clock math here — wall time already moved."""
+    with session.lock:
+        return _reveal_and_process(session, window)
 
 
 def restart_session(session: Session) -> None:
     """Practice rule (doc §8): no rewind — restart the day, fresh."""
     with session.lock:
+        assert isinstance(session.clock, ReplayClock), "only replay sessions restart"
         session.clock.current = session.start_at
         initial_cutoff = session.start_at - timedelta(seconds=BAR_SECONDS)
         session.last_seen = {s: initial_cutoff for s in session.symbols}
@@ -177,6 +192,7 @@ def seek_session(session: Session, to_epoch: int) -> None:
     target = datetime.fromtimestamp(to_epoch, tz=UTC)
     target = max(session.start_at, min(target, session.end_at))
     with session.lock:
+        assert isinstance(session.clock, ReplayClock), "only replay sessions seek"
         session.clock.current = target
         cutoff = target - timedelta(seconds=BAR_SECONDS)
         session.last_seen = {s: cutoff for s in session.symbols}

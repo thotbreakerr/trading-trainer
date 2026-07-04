@@ -158,6 +158,55 @@ def cmd_scan(args) -> None:
         print("  " + "  ".join(parts))
 
 
+def cmd_fake_live(args) -> None:
+    """Drive the REAL poller machinery over a cached day with a fake wall
+    clock — a dev rig for testing Market Day outside market hours (doc §17.7),
+    not a product feature."""
+    from datetime import timedelta
+
+    from app.config import load_app_config, load_rules_config
+    from app.lessons.loader import load_lessons
+    from app.main import LESSONS_DIR
+    from app.marketday.poller import MarketDayPoller
+
+    cfg = load_app_config()
+    conn = db.init_db(cfg.db_path)
+    day = date.fromisoformat(args.date)
+    calendar = MarketCalendar(conn)
+    cal_day = calendar.day(day)
+    if cal_day is None:
+        sys.exit(f"{day} is not a (cached) trading day — fetch it first")
+    lessons = load_lessons(LESSONS_DIR)
+    wall = {"now": cal_day.session_open_utc() + timedelta(minutes=15)}
+    poller = MarketDayPoller(
+        cfg=cfg,
+        rules_cfg=load_rules_config(),
+        provider_fn=lambda: None,  # cache only — the whole point of the rig
+        lessons_fn=lambda: lessons,
+        now_fn=lambda: wall["now"],
+    )
+    end = cal_day.session_close_utc() + timedelta(minutes=16)
+    ticks = 0
+    while wall["now"] < end:
+        summary = poller.tick_once()
+        ticks += 1
+        if summary.get("events"):
+            print(f"[{wall['now']:%H:%M}Z] {summary}")
+        wall["now"] += timedelta(minutes=args.speed)
+    print(f"\n{ticks} ticks. Callouts fired:")
+    if poller.callouts:
+        clock = poller.session.clock.now() if poller.session else wall["now"]
+        for c in poller.callouts.visible(clock):
+            if c.get("locked"):
+                print(f"  [locked] {c['symbol']} at {c['fired_ts']} -> module {c['unlock_module']}")
+            else:
+                print(
+                    f"  {c['symbol']} {c['setup_type']} {c['direction']} "
+                    f"grade={c['grade']['tier'] if c['grade'] else '-'} "
+                    f"status={c['status']} outcome={c['outcome']} ({c['outcome_r']}R)"
+                )
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -181,6 +230,10 @@ def main() -> None:
     sc.add_argument("symbol")
     sc.add_argument("date", help="YYYY-MM-DD (a cached trading day)")
     sc.set_defaults(fn=cmd_scan)
+    fl = sub.add_parser("fake-live")
+    fl.add_argument("date", help="YYYY-MM-DD (a cached trading day)")
+    fl.add_argument("--speed", type=int, default=60, help="fake minutes per tick")
+    fl.set_defaults(fn=cmd_fake_live)
     args = p.parse_args()
     args.fn(args)
 

@@ -2,12 +2,15 @@ import type {
   AccountInfo,
   BackfillProgressInfo,
   BarsResponse,
+  BriefingData,
   CompleteResponse,
   KeysStatus,
   LessonDetail,
   LessonListItem,
+  MarketDayState,
   OrderRequest,
   OrderResult,
+  RecapData,
   SessionBarsResponse,
   SessionInfo,
   SessionTrade,
@@ -54,8 +57,8 @@ export const api = {
     ),
   startBackfill: () => postJson<{ started: boolean }>('/api/backfill'),
   backfillProgress: () => getJson<BackfillProgressInfo>('/api/backfill/progress'),
-  createSession: (symbol: string, day: string) =>
-    postJson<SessionInfo>('/api/sessions', { symbol, day }),
+  createSession: (symbol: string, day: string, startAt?: number) =>
+    postJson<SessionInfo>('/api/sessions', { symbol, day, start_at: startAt }),
   stepSession: (id: string, bars: number) =>
     postJson<StepResponse>(`/api/sessions/${id}/step?bars=${bars}`),
   sessionBars: (id: string, tf: Timeframe) =>
@@ -80,4 +83,12 @@ export const api = {
     getJson<{ trades: SessionTrade[] }>(`/api/sessions/${sessionId}/trades`),
   sizing: (body: { equity: number; entry: number; stop: number; risk_pct?: number }) =>
     postJson<SizingResult>('/api/sizing', body),
+  marketDayState: () => getJson<MarketDayState>('/api/marketday/state'),
+  actOnCallout: (id: string) =>
+    postJson<{ orders: number[]; qty: number; grade: unknown }>(
+      `/api/marketday/callouts/${id}/act`, {},
+    ),
+  briefing: (refresh = false) =>
+    getJson<BriefingData>(`/api/briefing${refresh ? '?refresh=true' : ''}`),
+  recap: (day?: string) => getJson<RecapData>(`/api/recap${day ? `?day=${day}` : ''}`),
 }

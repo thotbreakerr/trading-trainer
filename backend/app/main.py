@@ -12,9 +12,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app import db
-from app.api import data, deps, lessons_api, sessions_api, system
+from app.api import data, deps, lessons_api, marketday_api, sessions_api, system
 from app.config import PROJECT_ROOT, load_app_config, load_creds, load_rules_config
 from app.lessons.loader import load_lessons, validate_demo_days
+from app.marketday.poller import MarketDayPoller
 from app.marketdata.calendar import MarketCalendar
 from app.marketdata.fetcher import Fetcher
 from app.models import ET, utcnow
@@ -54,7 +55,18 @@ async def lifespan(app: FastAPI):
             await asyncio.to_thread(_validate_lessons, app)
         except Exception as e:
             logger.warning("lesson validation failed: %s", e)
-    yield
+    poller = MarketDayPoller(
+        cfg=app.state.cfg,
+        rules_cfg=app.state.rules,
+        provider_fn=lambda: app.state.provider,
+        lessons_fn=lambda: app.state.lessons,
+    )
+    app.state.poller = poller
+    task = asyncio.create_task(poller.run())
+    try:
+        yield
+    finally:
+        task.cancel()
 
 
 def create_app() -> FastAPI:
@@ -69,6 +81,7 @@ def create_app() -> FastAPI:
     app.include_router(data.router, prefix="/api", tags=["data"])
     app.include_router(sessions_api.router, prefix="/api", tags=["sessions"])
     app.include_router(lessons_api.router, prefix="/api", tags=["lessons"])
+    app.include_router(marketday_api.router, prefix="/api", tags=["marketday"])
     return app
 
 

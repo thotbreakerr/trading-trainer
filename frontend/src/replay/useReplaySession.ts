@@ -48,8 +48,8 @@ export function useReplaySession() {
     return () => window.clearInterval(id)
   }, [playing, session, speed, doStep])
 
-  const start = useCallback(async (symbol: string, day: string) => {
-    const info = await api.createSession(symbol, day)
+  const start = useCallback(async (symbol: string, day: string, startAt?: number) => {
+    const info = await api.createSession(symbol, day, startAt)
     setSession(info)
     setClock(info.clock)
     setDone(info.done)

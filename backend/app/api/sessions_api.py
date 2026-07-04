@@ -3,7 +3,7 @@ overlays, restart, dispose. Seek stays lesson-only and is rejected here."""
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -32,6 +32,7 @@ class CreateSessionIn(BaseModel):
     day: date
     lookback: int = Field(default=3, ge=0, le=10)
     start: str = Field(default="open", pattern="^(open|session_open)$")
+    start_at: int | None = None  # epoch: review sessions jump to a moment (doc §11)
 
 
 def _get(session_id: str) -> sessions.Session:
@@ -57,7 +58,7 @@ def _info(session: sessions.Session) -> dict:
         "mode": session.mode,
         "symbols": session.symbols,
         "day": session.day.isoformat(),
-        "clock": int(session.clock.current.timestamp()),
+        "clock": int(session.clock.now().timestamp()),
         "done": session.done,
         "start_at": int(session.start_at.timestamp()),
         "end_at": int(session.end_at.timestamp()),
@@ -77,12 +78,17 @@ def create_session(body: CreateSessionIn, request: Request) -> dict:
             logger.warning("lazy fetch failed for %s %s: %s", symbol, body.day, e)
     cfg = deps.get_cfg(request)
     try:
+        start_at = (
+            datetime.fromtimestamp(body.start_at, tz=UTC) if body.start_at else None
+        )
         session = sessions.create_session(
             deps.get_calendar(request),
             [symbol],
             body.day,
             lookback_days=body.lookback,
             start=body.start,
+            start_at=start_at,
+            mode="review" if start_at else "replay",
             sim=SimEngine(cfg.starting_balance, cfg.intraday_leverage),
         )
     except ValueError as e:
@@ -131,7 +137,7 @@ def session_bars(
         "symbol": sym,
         "tf": tf,
         "day": session.day.isoformat(),
-        "clock": int(session.clock.current.timestamp()),
+        "clock": int(session.clock.now().timestamp()),
         "done": session.done,
         "bars": [bar_json(b) for b in agg],
         "days": [day_meta(d) for d in window.days],
@@ -200,7 +206,7 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
         raise HTTPException(status_code=409, detail="this session has no sim account")
     cfg = deps.get_cfg(request)
     symbol = session.symbols[0]
-    now = session.clock.current
+    now = session.clock.now()
     grade = None
     with session.lock:
         if body.kind == "bracket":
@@ -284,7 +290,7 @@ def cancel_order(session_id: str, order_id: int) -> dict:
         raise HTTPException(status_code=409, detail="this session has no sim account")
     with session.lock:
         try:
-            events = session.sim.cancel(order_id, session.clock.current)
+            events = session.sim.cancel(order_id, session.clock.now())
         except OrderError as e:
             raise HTTPException(status_code=409, detail=str(e))
     return {"events": [e.to_json() for e in events]}
