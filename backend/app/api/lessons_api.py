@@ -13,6 +13,7 @@ from app.api import deps
 from app.lessons.loader import STATUS_OK, LessonModule, LessonStep
 from app.marketdata.calendar import CalendarUnavailable
 from app.models import et_clock_to_utc
+from app.sim.engine import SimEngine
 from app.stores import progress
 
 logger = logging.getLogger(__name__)
@@ -180,6 +181,7 @@ def lesson_session(module_number: int, step_index: int, request: Request) -> dic
             fetcher.ensure_day(step.symbol, step.day)
         except Exception as e:
             logger.warning("lesson day fetch failed %s %s: %s", step.symbol, step.day, e)
+    cfg = deps.get_cfg(request)
     try:
         session = sessions.create_session(
             deps.get_calendar(request),
@@ -188,6 +190,7 @@ def lesson_session(module_number: int, step_index: int, request: Request) -> dic
             lookback_days=3,
             start=step.start,
             mode="lesson",
+            sim=SimEngine(cfg.starting_balance, cfg.intraday_leverage),
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

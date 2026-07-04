@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import type { SessionInfo } from '../lib/types'
+import type { SessionInfo, SimEvent } from '../lib/types'
 
 export type Speed = 1 | 2 | 5
 
@@ -14,6 +14,8 @@ export function useReplaySession() {
   const [speed, setSpeed] = useState<Speed>(1)
   const [clock, setClock] = useState<number | null>(null)
   const [done, setDone] = useState(false)
+  const [events, setEvents] = useState<SimEvent[]>([])
+  const [stepCount, setStepCount] = useState(0)
   const inFlight = useRef(false)
 
   const invalidate = useCallback(
@@ -29,6 +31,8 @@ export function useReplaySession() {
         const r = await api.stepSession(session.id, bars)
         setClock(r.clock)
         setDone(r.done)
+        if (r.events.length) setEvents((prev) => [...prev, ...r.events].slice(-40))
+        setStepCount((n) => n + 1)
         if (r.done) setPlaying(false)
         await invalidate(session.id)
       } finally {
@@ -50,6 +54,8 @@ export function useReplaySession() {
     setClock(info.clock)
     setDone(info.done)
     setPlaying(false)
+    setEvents([])
+    setStepCount(0)
   }, [])
 
   const restart = useCallback(async () => {
@@ -58,6 +64,8 @@ export function useReplaySession() {
     setClock(info.clock)
     setDone(false)
     setPlaying(false)
+    setEvents([])
+    setStepCount((n) => n + 1)
     await invalidate(session.id)
   }, [session, invalidate])
 
@@ -67,6 +75,7 @@ export function useReplaySession() {
     setPlaying(false)
     setClock(null)
     setDone(false)
+    setEvents([])
   }, [session])
 
   return {
@@ -75,6 +84,8 @@ export function useReplaySession() {
     speed,
     clock,
     done,
+    events,
+    stepCount,
     start,
     exit,
     restart,

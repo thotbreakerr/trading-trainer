@@ -64,7 +64,7 @@ export interface StepResponse {
   clock: number
   cutoff: number
   done: boolean
-  events: unknown[]
+  events: SimEvent[]
   new_bars: Record<string, ApiBar[]>
 }
 
@@ -72,6 +72,84 @@ export interface SessionBarsResponse extends BarsResponse {
   clock: number
   done: boolean
   sma200: number | null
+}
+
+export interface SimEvent {
+  kind: 'fill' | 'reject' | 'cancel' | 'eod_warning' | 'eod_flatten'
+  ts: string
+  symbol: string | null
+  order_id: number | null
+  detail: string
+}
+
+export interface AccountPosition {
+  symbol: string
+  qty: number
+  avg_price: number
+  last: number | null
+  unrealized: number
+  initial_stop: number | null
+}
+
+export interface WorkingOrder {
+  id: number
+  symbol: string
+  side: 'buy' | 'sell'
+  type: 'market' | 'limit' | 'stop'
+  qty: number
+  limit_price: number | null
+  stop_price: number | null
+  bracket_id: string | null
+  role: string
+  status: string
+  fill_price: number | null
+  reason: string | null
+}
+
+export interface AccountInfo {
+  equity: number
+  cash: number
+  buying_power_left: number
+  flattened: boolean
+  positions: AccountPosition[]
+  working_orders: WorkingOrder[]
+}
+
+export interface SessionTrade {
+  symbol: string
+  direction: 'long' | 'short'
+  qty: number
+  entry_ts: string
+  entry_price: number
+  exit_ts: string | null
+  exit_price: number | null
+  exit_reason: string | null
+  r_multiple: number | null
+}
+
+export interface OrderResult {
+  orders: WorkingOrder[]
+  rejected: boolean
+  reason: string | null
+}
+
+export interface SizingResult {
+  shares: number
+  risk_amount: number
+  per_share_risk: number
+  notional: number
+  bp_capped: boolean
+}
+
+export interface OrderRequest {
+  kind?: 'bracket' | 'market' | 'limit' | 'stop'
+  side: 'buy' | 'sell'
+  qty?: number
+  entry_type?: 'market' | 'limit'
+  limit_price?: number
+  stop_price?: number
+  target_price?: number
+  risk_pct?: number
 }
 
 export type LessonStatus = 'available' | 'locked' | 'complete' | 'unavailable'

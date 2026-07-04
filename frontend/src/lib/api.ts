@@ -1,12 +1,17 @@
 import type {
+  AccountInfo,
   BackfillProgressInfo,
   BarsResponse,
   CompleteResponse,
   KeysStatus,
   LessonDetail,
   LessonListItem,
+  OrderRequest,
+  OrderResult,
   SessionBarsResponse,
   SessionInfo,
+  SessionTrade,
+  SizingResult,
   StepResponse,
   SymbolsResponse,
   Timeframe,
@@ -63,4 +68,13 @@ export const api = {
     postJson<CompleteResponse>(`/api/lessons/${module}/steps/${step}/complete`, body ?? {}),
   lessonSession: (module: number, step: number) =>
     postJson<SessionInfo>(`/api/lessons/${module}/steps/${step}/session`),
+  placeOrder: (sessionId: string, body: OrderRequest) =>
+    postJson<OrderResult>(`/api/sessions/${sessionId}/orders`, body),
+  cancelOrder: (sessionId: string, orderId: number) =>
+    fetch(`/api/sessions/${sessionId}/orders/${orderId}`, { method: 'DELETE' }),
+  account: (sessionId: string) => getJson<AccountInfo>(`/api/sessions/${sessionId}/account`),
+  sessionTrades: (sessionId: string) =>
+    getJson<{ trades: SessionTrade[] }>(`/api/sessions/${sessionId}/trades`),
+  sizing: (body: { equity: number; entry: number; stop: number; risk_pct?: number }) =>
+    postJson<SizingResult>('/api/sizing', body),
 }

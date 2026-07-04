@@ -9,6 +9,8 @@ import { useBars } from '../chart/useBars'
 import { WatchlistRail } from '../marketday/WatchlistRail'
 import { ReplayControls } from '../replay/ReplayControls'
 import { useReplaySession } from '../replay/useReplaySession'
+import { OrderTicket } from '../sim/OrderTicket'
+import { PositionPanel } from '../sim/PositionPanel'
 
 function closedBanner(state: string, displayDay: string | null): string | null {
   if (state !== 'closed' || !displayDay) return null
@@ -46,6 +48,13 @@ export function MarketDayTab() {
   const data = inReplay ? sessionQ.data : browseQ.data
   const banner = closedBanner(symbolsQ.data?.state ?? 'unknown', displayDay)
   const queryError = inReplay ? sessionQ.error : browseQ.error
+  const accountQ = useQuery({
+    queryKey: ['account', replay.session?.id ?? 'none', replay.stepCount],
+    queryFn: () => api.account(replay.session!.id),
+    enabled: inReplay,
+    staleTime: 0,
+  })
+  const lastBar = sessionQ.data?.bars[sessionQ.data.bars.length - 1]
 
   const selectSymbol = (s: string) => {
     if (inReplay) replay.exit() // one symbol per replay session
@@ -63,7 +72,7 @@ export function MarketDayTab() {
   }
 
   return (
-    <div className="market-layout">
+    <div className={`market-layout ${inReplay ? 'replaying' : ''}`}>
       <WatchlistRail
         symbols={symbolsQ.data?.symbols ?? []}
         selected={symbol}
@@ -112,6 +121,20 @@ export function MarketDayTab() {
           />
         </ChartErrorBoundary>
       </section>
+      {inReplay && replay.session && (
+        <aside className="sim-rail">
+          <OrderTicket
+            sessionId={replay.session.id}
+            lastPrice={lastBar?.c ?? null}
+            equity={accountQ.data?.equity ?? null}
+          />
+          <PositionPanel
+            sessionId={replay.session.id}
+            stepCount={replay.stepCount}
+            events={replay.events}
+          />
+        </aside>
+      )}
     </div>
   )
 }

@@ -6,6 +6,8 @@ import { ChartErrorBoundary } from '../chart/ChartErrorBoundary'
 import { ChartPane } from '../chart/ChartPane'
 import { TimeframeSwitcher } from '../chart/TimeframeSwitcher'
 import { useBars } from '../chart/useBars'
+import { OrderTicket } from '../sim/OrderTicket'
+import { PositionPanel } from '../sim/PositionPanel'
 import { GuidedPointer } from './GuidedPointer'
 import { Markdown } from './Markdown'
 import { useLessonReplay } from './useLessonReplay'
@@ -139,6 +141,12 @@ export function LessonTakeover({
     enabled: !!replay.session,
     staleTime: 0,
   })
+  const practiceAccountQ = useQuery({
+    queryKey: ['account', replay.session?.id ?? 'none', replay.stepCount],
+    queryFn: () => api.account(replay.session!.id),
+    enabled: !!replay.session && step?.type === 'practice',
+    staleTime: 0,
+  })
   const chartData = replay.session ? sessionQ.data : browseQ.data
 
   const markComplete = async () => {
@@ -267,13 +275,31 @@ export function LessonTakeover({
         )}
 
         {step.type === 'practice' && step.goal && (
-          <div className="practice-goal">
-            <h4>Your goal</h4>
-            <Markdown text={step.goal} />
-            {!stepDone && (
-              <button className="btn-primary" onClick={() => void markComplete()}>
-                Mark practice complete
-              </button>
+          <div className="practice-layout">
+            <div className="practice-goal">
+              <h4>Your goal</h4>
+              <Markdown text={step.goal} />
+              {!stepDone && (
+                <button className="btn-primary" onClick={() => void markComplete()}>
+                  Mark practice complete
+                </button>
+              )}
+            </div>
+            {replay.session && (
+              <div className="practice-sim">
+                <OrderTicket
+                  sessionId={replay.session.id}
+                  lastPrice={
+                    sessionQ.data?.bars[sessionQ.data.bars.length - 1]?.c ?? null
+                  }
+                  equity={practiceAccountQ.data?.equity ?? null}
+                />
+                <PositionPanel
+                  sessionId={replay.session.id}
+                  stepCount={replay.stepCount}
+                  events={replay.events}
+                />
+              </div>
             )}
           </div>
         )}

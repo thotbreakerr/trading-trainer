@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import type { LessonStepData, SessionInfo } from '../lib/types'
+import type { LessonStepData, SessionInfo, SimEvent } from '../lib/types'
 
 /** Replay driver for lesson Watch/Practice steps. Watch steps auto-advance
  * to each scripted pause (doc §8 "lesson auto-jump"); Practice steps get the
@@ -16,6 +16,8 @@ export function useLessonReplay(moduleNumber: number, step: LessonStepData | nul
   const [running, setRunning] = useState(false) // auto-advance toward target
   const [playing, setPlaying] = useState(false) // free play (practice)
   const [speed, setSpeed] = useState<1 | 2 | 5>(2)
+  const [events, setEvents] = useState<SimEvent[]>([])
+  const [stepCount, setStepCount] = useState(0)
   const busy = useRef(false)
   const stepKey = step ? `${moduleNumber}:${step.index}` : null
 
@@ -30,6 +32,8 @@ export function useLessonReplay(moduleNumber: number, step: LessonStepData | nul
     setAtPause(false)
     setRunning(false)
     setPlaying(false)
+    setEvents([])
+    setStepCount(0)
     if (!hasReplay || step == null) return
     let cancelled = false
     api
@@ -60,6 +64,8 @@ export function useLessonReplay(moduleNumber: number, step: LessonStepData | nul
         const r = await api.stepSession(session.id, bars)
         setClock(r.clock)
         setDone(r.done)
+        if (r.events.length) setEvents((prev) => [...prev, ...r.events].slice(-40))
+        setStepCount((n) => n + 1)
         await invalidate(session.id)
         return r
       } finally {
@@ -113,6 +119,8 @@ export function useLessonReplay(moduleNumber: number, step: LessonStepData | nul
     setAtPause(false)
     setRunning(false)
     setPlaying(false)
+    setEvents([])
+    setStepCount((n) => n + 1)
     await invalidate(session.id)
   }
 
@@ -129,6 +137,8 @@ export function useLessonReplay(moduleNumber: number, step: LessonStepData | nul
     atPause,
     pauseIndex,
     pauses,
+    events,
+    stepCount,
     scriptFinished,
     playToNextPause,
     continueFromPause,

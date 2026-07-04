@@ -22,7 +22,8 @@ from datetime import UTC, date, datetime, timedelta
 
 from app.marketdata.calendar import MarketCalendar
 from app.marketdata.window import BAR_SECONDS, BarWindow, ReplayClock
-from app.models import Bar
+from app.models import Bar, CalendarDay
+from app.sim.engine import SimEngine
 
 MAX_STEP_BARS = 60
 
@@ -34,14 +35,17 @@ class SessionNotFound(KeyError):
 @dataclass
 class Session:
     id: str
-    mode: str  # 'replay' | 'review'  (marketday joins later)
+    mode: str  # 'replay' | 'lesson' | 'review'  (marketday joins later)
     symbols: list[str]
     day: date
+    cal_day: CalendarDay
     lookback_days: int
     clock: ReplayClock
     start_at: datetime
     end_at: datetime  # anchor session close — the step loop stops here
     last_seen: dict[str, datetime]  # per-symbol high-water mark (a TIME, not a bar)
+    sim: SimEngine | None = None
+    persisted_trades: int = 0  # journal write-through high-water mark
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     @property
@@ -55,7 +59,7 @@ class StepResult:
     cutoff: datetime
     done: bool
     new_bars: dict[str, list[Bar]]
-    events: list[dict]  # sim fills / callouts in later phases
+    events: list[dict]  # sim fills/rejects/EOD now; callouts join later
 
 
 _SESSIONS: dict[str, Session] = {}
@@ -71,6 +75,7 @@ def create_session(
     start: str = "open",  # 'open' | 'session_open'
     start_at: datetime | None = None,  # review mode: jump straight to a moment
     mode: str = "replay",
+    sim: SimEngine | None = None,
 ) -> Session:
     cal_day = calendar.day(day)
     if cal_day is None:
@@ -83,11 +88,13 @@ def create_session(
         mode=mode,
         symbols=[s.upper() for s in symbols],
         day=day,
+        cal_day=cal_day,
         lookback_days=lookback_days,
         clock=ReplayClock(current=start_at),
         start_at=start_at,
         end_at=cal_day.session_close_utc(),
         last_seen={s.upper(): initial_cutoff for s in symbols},
+        sim=sim,
     )
     with _REGISTRY_LOCK:
         _SESSIONS[session.id] = session
@@ -119,12 +126,20 @@ def step_session(session: Session, window: BarWindow, bars: int = 1) -> StepResu
             )
         cutoff = window.cutoff()
         new_bars: dict[str, list[Bar]] = {}
+        events: list[dict] = []
         for symbol in session.symbols:
             since = session.last_seen[symbol] + timedelta(seconds=BAR_SECONDS)
             revealed = window.bars_1m(symbol, since=since) if since <= cutoff else []
             new_bars[symbol] = revealed
             session.last_seen[symbol] = max(cutoff, session.last_seen[symbol])
-        events: list[dict] = []  # _on_clock hook: sim + callouts arrive later
+            if session.sim is not None:
+                for bar in revealed:
+                    events += [e.to_json() for e in session.sim.on_bar(bar)]
+        if session.sim is not None:
+            events += [
+                e.to_json()
+                for e in session.sim.on_clock(session.clock.current, session.cal_day)
+            ]
         return StepResult(
             clock=session.clock.current,
             cutoff=cutoff,
