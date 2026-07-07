@@ -11,11 +11,11 @@ from pydantic import BaseModel, Field
 from app.api import deps
 from app.detectors.engine import build_snapshot
 from app.grading.grader import grade_entry
+from app.marketdata.calendar import CalendarUnavailable
+from app.marketdata.window import BarWindow
 from app.marketday.briefing import build_briefing, get_snapshot, save_snapshot
 from app.marketday.poller import MarketDayPoller
 from app.marketday.recap import build_recap
-from app.marketdata.calendar import CalendarUnavailable
-from app.marketdata.window import BarWindow
 from app.models import ET, utcnow
 from app.sim.sizing import SizingError, size_position
 

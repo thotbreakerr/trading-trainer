@@ -13,7 +13,7 @@ import sys
 from datetime import date
 
 from app import db
-from app.config import load_app_config, load_creds
+from app.config import load_app_config, load_creds, migrate_legacy_env
 from app.marketdata import store
 from app.marketdata.calendar import MarketCalendar
 from app.marketdata.fetcher import Fetcher
@@ -21,13 +21,15 @@ from app.providers.alpaca import AlpacaProvider
 
 
 def _context():
+    migrate_legacy_env()
     cfg = load_app_config()
     conn = db.init_db(cfg.db_path)
     creds = load_creds()
     if creds is None:
         sys.exit(
-            "No Alpaca keys found. Put APCA_API_KEY_ID / APCA_API_SECRET_KEY in "
-            ".env at the project root (free paper-account signup: alpaca.markets)."
+            "No Alpaca keys found. Run the app once and enter keys, or put "
+            "APCA_API_KEY_ID / APCA_API_SECRET_KEY in .env under "
+            "%LOCALAPPDATA%\\trading-trainer (free paper signup: alpaca.markets)."
         )
     provider = AlpacaProvider(creds.key_id, creds.secret)
     calendar = MarketCalendar(conn, provider)

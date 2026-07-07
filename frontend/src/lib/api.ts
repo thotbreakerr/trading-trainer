@@ -4,6 +4,11 @@ import type {
   BarsResponse,
   BriefingData,
   CompleteResponse,
+  DrillNextResponse,
+  DrillResolution,
+  DrillRunInfo,
+  DrillSetupInfo,
+  DrillSetupsResponse,
   JournalTrade,
   KeysStatus,
   LessonDetail,
@@ -61,8 +66,8 @@ export const api = {
   backfillProgress: () => getJson<BackfillProgressInfo>('/api/backfill/progress'),
   createSession: (symbol: string, day: string, startAt?: number) =>
     postJson<SessionInfo>('/api/sessions', { symbol, day, start_at: startAt }),
-  stepSession: (id: string, bars: number) =>
-    postJson<StepResponse>(`/api/sessions/${id}/step?bars=${bars}`),
+  stepSession: (id: string, bars: number, tf?: Timeframe) =>
+    postJson<StepResponse>(`/api/sessions/${id}/step?bars=${bars}${tf ? `&tf=${tf}` : ''}`),
   sessionBars: (id: string, tf: Timeframe) =>
     getJson<SessionBarsResponse>(`/api/sessions/${id}/bars?tf=${tf}`),
   restartSession: (id: string) => postJson<SessionInfo>(`/api/sessions/${id}/restart`),
@@ -97,4 +102,11 @@ export const api = {
   briefing: (refresh = false) =>
     getJson<BriefingData>(`/api/briefing${refresh ? '?refresh=true' : ''}`),
   recap: (day?: string) => getJson<RecapData>(`/api/recap${day ? `?day=${day}` : ''}`),
+  drillSetups: () => getJson<DrillSetupsResponse>('/api/drill/setups'),
+  drillStartRun: (setup: string, count: number) =>
+    postJson<DrillRunInfo>('/api/drill/runs', { setup, count }),
+  drillNext: (runId: string) => postJson<DrillNextResponse>(`/api/drill/runs/${runId}/next`),
+  drillResolve: (attemptId: string) =>
+    postJson<DrillResolution>(`/api/drill/attempts/${attemptId}/resolve`),
+  drillStats: () => getJson<{ setups: DrillSetupInfo[] }>('/api/drill/stats'),
 }

@@ -44,6 +44,19 @@ class LessonCtx:
 
 
 @dataclass
+class DrillCtx:
+    """Which drill attempt owns this session. The FIRST bracket grade is the
+    rep (later re-entries never overwrite it), and resolve() sets `resolved`
+    so further orders are rejected — server-enforced honesty, like lesson
+    grading. first_grade holds a grading GradeResult."""
+
+    attempt_id: str
+    first_grade: object | None = None
+    first_grade_ts: datetime | None = None
+    resolved: bool = False
+
+
+@dataclass
 class Session:
     id: str
     mode: str  # 'replay' | 'lesson' | 'review' | 'marketday'
@@ -57,6 +70,7 @@ class Session:
     last_seen: dict[str, datetime]  # per-symbol high-water mark (a TIME, not a bar)
     sim: SimEngine | None = None
     lesson_ctx: LessonCtx | None = None
+    drill_ctx: DrillCtx | None = None
     persisted_trades: int = 0  # journal write-through high-water mark
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
@@ -89,6 +103,7 @@ def create_session(
     mode: str = "replay",
     sim: SimEngine | None = None,
     lesson_ctx: LessonCtx | None = None,
+    drill_ctx: DrillCtx | None = None,
     clock: Clock | None = None,  # Market Day passes a DelayedLiveClock
 ) -> Session:
     cal_day = calendar.day(day)
@@ -110,6 +125,7 @@ def create_session(
         last_seen={s.upper(): initial_cutoff for s in symbols},
         sim=sim,
         lesson_ctx=lesson_ctx,
+        drill_ctx=drill_ctx,
     )
     with _REGISTRY_LOCK:
         _SESSIONS[session.id] = session

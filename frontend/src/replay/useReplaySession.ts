@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import type { SessionInfo, SimEvent } from '../lib/types'
+import { applyStepDelta } from '../lib/mergeStepDelta'
+import type { SessionInfo, SimEvent, Timeframe } from '../lib/types'
 
 export type Speed = 1 | 2 | 5
 
 /** Owns the replay step timer (doc §8): the CLIENT drives the clock — one
- * tick per second posting `speed` bars; pausing simply stops calling. */
-export function useReplaySession() {
+ * tick per second posting `speed` bars; pausing simply stops calling. `tf`
+ * is the chart timeframe steps ask a delta for (merge > refetch). */
+export function useReplaySession(tf: Timeframe) {
   const queryClient = useQueryClient()
   const [session, setSession] = useState<SessionInfo | null>(null)
   const [playing, setPlaying] = useState(false)
@@ -28,18 +30,18 @@ export function useReplaySession() {
       if (!session || inFlight.current) return
       inFlight.current = true
       try {
-        const r = await api.stepSession(session.id, bars)
+        const r = await api.stepSession(session.id, bars, tf)
         setClock(r.clock)
         setDone(r.done)
         if (r.events.length) setEvents((prev) => [...prev, ...r.events].slice(-40))
         setStepCount((n) => n + 1)
         if (r.done) setPlaying(false)
-        await invalidate(session.id)
+        await applyStepDelta(queryClient, session.id, r)
       } finally {
         inFlight.current = false
       }
     },
-    [session, invalidate],
+    [session, tf, queryClient],
   )
 
   useEffect(() => {
@@ -48,8 +50,9 @@ export function useReplaySession() {
     return () => window.clearInterval(id)
   }, [playing, session, speed, doStep])
 
-  const start = useCallback(async (symbol: string, day: string, startAt?: number) => {
-    const info = await api.createSession(symbol, day, startAt)
+  /** Take over an externally created session (drill attempts are created by
+   * the drill endpoints, not by this hook). */
+  const adopt = useCallback((info: SessionInfo) => {
     setSession(info)
     setClock(info.clock)
     setDone(info.done)
@@ -57,6 +60,13 @@ export function useReplaySession() {
     setEvents([])
     setStepCount(0)
   }, [])
+
+  const start = useCallback(
+    async (symbol: string, day: string, startAt?: number) => {
+      adopt(await api.createSession(symbol, day, startAt))
+    },
+    [adopt],
+  )
 
   const restart = useCallback(async () => {
     if (!session) return
@@ -87,6 +97,7 @@ export function useReplaySession() {
     events,
     stepCount,
     start,
+    adopt,
     exit,
     restart,
     stepOne: () => void doStep(1),

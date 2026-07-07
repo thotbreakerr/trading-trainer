@@ -15,3 +15,6 @@ dist/
 *.db
 *.db-wal
 *.db-shm
+
+# user-data backups (synced by OneDrive, never committed)
+backups/

@@ -10,19 +10,21 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
-from app import db
-from app.api import data, deps, journal_api, lessons_api, marketday_api, sessions_api, system
-from app.config import PROJECT_ROOT, load_app_config, load_creds, load_rules_config
+from app import backup, db
+from app.api import data, deps, drill_api, journal_api, lessons_api, marketday_api, sessions_api, system
+from app.config import PROJECT_ROOT, load_app_config, load_creds, load_rules_config, migrate_legacy_env
 from app.lessons.loader import load_lessons, validate_demo_days
-from app.marketday.poller import MarketDayPoller
 from app.marketdata.calendar import MarketCalendar
 from app.marketdata.fetcher import Fetcher
+from app.marketday.poller import MarketDayPoller
 from app.models import ET, utcnow
 
 logger = logging.getLogger(__name__)
 
 LESSONS_DIR = PROJECT_ROOT / "lessons"
+FRONTEND_DIST = PROJECT_ROOT / "frontend" / "dist"
 
 
 def _warm_calendar(app: FastAPI) -> None:
@@ -46,6 +48,10 @@ def _validate_lessons(app: FastAPI) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    try:  # snapshot user data before anything else touches the DB today
+        await asyncio.to_thread(backup.run_startup_backup, app.state.cfg)
+    except Exception as e:  # backups must never stop the app from booting
+        logger.warning("startup backup failed: %s", e)
     if app.state.provider is not None:
         try:
             await asyncio.to_thread(_warm_calendar, app)
@@ -70,6 +76,7 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    migrate_legacy_env()  # move .env out of the OneDrive-synced project root
     cfg = load_app_config()
     db.init_db(cfg.db_path)
     app = FastAPI(title="Day Trading Trainer", version="0.1.0", lifespan=lifespan)
@@ -83,6 +90,13 @@ def create_app() -> FastAPI:
     app.include_router(lessons_api.router, prefix="/api", tags=["lessons"])
     app.include_router(marketday_api.router, prefix="/api", tags=["marketday"])
     app.include_router(journal_api.router, prefix="/api", tags=["journal"])
+    app.include_router(drill_api.router, prefix="/api", tags=["drill"])
+    # Built UI (run.ps1 builds it). Registered routes (/api/*, /docs) win over
+    # the mount; without dist the API still serves — Vite covers the UI in dev.
+    if (FRONTEND_DIST / "index.html").is_file():
+        app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="frontend")
+    else:
+        logger.warning("frontend/dist missing — serving API only (build with run.ps1 -Build)")
     return app
 
 

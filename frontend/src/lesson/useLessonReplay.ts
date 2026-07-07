@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import type { LessonStepData, SessionInfo, SimEvent } from '../lib/types'
+import { applyStepDelta } from '../lib/mergeStepDelta'
+import type { LessonStepData, SessionInfo, SimEvent, Timeframe } from '../lib/types'
 
 /** Replay driver for lesson Watch/Practice steps. Watch steps auto-advance
  * to each scripted pause (doc §8 "lesson auto-jump"); Practice steps get the
- * free play/pause/speed controls. */
-export function useLessonReplay(moduleNumber: number, step: LessonStepData | null) {
+ * free play/pause/speed controls. `tf` = chart timeframe for step deltas. */
+export function useLessonReplay(moduleNumber: number, step: LessonStepData | null, tf: Timeframe) {
   const queryClient = useQueryClient()
   const [session, setSession] = useState<SessionInfo | null>(null)
   const [clock, setClock] = useState<number | null>(null)
@@ -61,18 +62,18 @@ export function useLessonReplay(moduleNumber: number, step: LessonStepData | nul
       if (!session || busy.current) return null
       busy.current = true
       try {
-        const r = await api.stepSession(session.id, bars)
+        const r = await api.stepSession(session.id, bars, tf)
         setClock(r.clock)
         setDone(r.done)
         if (r.events.length) setEvents((prev) => [...prev, ...r.events].slice(-40))
         setStepCount((n) => n + 1)
-        await invalidate(session.id)
+        await applyStepDelta(queryClient, session.id, r)
         return r
       } finally {
         busy.current = false
       }
     },
-    [session, invalidate],
+    [session, tf, queryClient],
   )
 
   // Auto-advance toward the next pause (or session end) while `running`.

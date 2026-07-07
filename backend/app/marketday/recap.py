@@ -9,12 +9,13 @@ from datetime import date
 from app.detectors.engine import build_snapshot, scan_day
 from app.grading.grader import grade_signal
 from app.journal import stats
+from app.marketdata.calendar import MarketCalendar
+from app.marketdata.window import BarWindow, eod_clock
 from app.marketday.briefing import get_snapshot
 from app.marketday.hindsight import track_outcome
-from app.marketdata.calendar import MarketCalendar
-from app.marketdata.window import BarWindow, FixedClock, eod_clock
 from app.models import ET, et_date, from_db_ts, to_db_ts
-from app.stores import journal, setups as setups_store
+from app.stores import journal
+from app.stores import setups as setups_store
 
 
 def _batch_ledger(

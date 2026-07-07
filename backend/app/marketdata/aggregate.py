@@ -12,7 +12,7 @@ Bucketing rules:
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from typing import Mapping, Sequence
 
 from app.models import SESSION_PRE, SESSION_RTH, Bar, CalendarDay, et_date
@@ -28,6 +28,20 @@ def _segment_start(bar: Bar, cal: CalendarDay):
     return cal.close_utc()
 
 
+def bucket_start(bar: Bar, cal: CalendarDay, tf_minutes: int) -> datetime:
+    """Start of the tf bucket this 1m bar falls into (segment-anchored).
+
+    Monotone non-decreasing in bar.ts within a day: segment anchors are
+    ordered and buckets never cross them — which is what makes a trailing
+    slice at one bucket boundary exactly the set of buckets a step touched.
+    """
+    if tf_minutes == 1:
+        return bar.ts
+    seg = _segment_start(bar, cal)
+    width = timedelta(minutes=tf_minutes)
+    return seg + ((bar.ts - seg) // width) * width
+
+
 def aggregate_bars(
     bars: Sequence[Bar], tf_minutes: int, days: Mapping[date, CalendarDay]
 ) -> list[Bar]:
@@ -35,7 +49,6 @@ def aggregate_bars(
     `days` must contain a CalendarDay for every ET date present in `bars`."""
     if tf_minutes == 1:
         return list(bars)
-    width = timedelta(minutes=tf_minutes)
     out: dict[tuple, Bar] = {}
     order: list[tuple] = []
     for bar in bars:
@@ -43,8 +56,7 @@ def aggregate_bars(
         cal = days.get(day)
         if cal is None:
             raise ValueError(f"no calendar day supplied for {bar.symbol} bar on {day}")
-        seg = _segment_start(bar, cal)
-        bucket_ts = seg + ((bar.ts - seg) // width) * width
+        bucket_ts = bucket_start(bar, cal, tf_minutes)
         key = (bar.symbol, bucket_ts, bar.session)
         cur = out.get(key)
         if cur is None:

@@ -60,12 +60,21 @@ export interface SessionInfo {
   end_at: number
 }
 
+export interface StepDelta {
+  symbol: string
+  tf: Timeframe
+  bars: ApiBar[]
+  overlays: { vwap: Point[]; ema9: Point[]; ema20: Point[] }
+  rvol: number | null
+}
+
 export interface StepResponse {
   clock: number
   cutoff: number
   done: boolean
   events: SimEvent[]
   new_bars: Record<string, ApiBar[]>
+  delta: StepDelta | null
 }
 
 export interface SessionBarsResponse extends BarsResponse {
@@ -288,7 +297,7 @@ export interface RecapData {
 }
 
 export interface JournalTrade {
-  mode: 'practice' | 'marketday'
+  mode: 'practice' | 'marketday' | 'drill'
   day: string
   symbol: string
   direction: 'long' | 'short'
@@ -352,6 +361,64 @@ export interface CompleteResponse {
   completed: boolean
   correct?: boolean
   explain?: string
+}
+
+export interface DrillSetupInfo {
+  key: string
+  label: string
+  attempts: number
+  taken: number
+  passed: number
+  grade_distribution: Record<string, number>
+  taken_avg_outcome_r: number | null
+  passed_avg_outcome_r: number | null
+  by_day: { day: string; attempts: number; grades: Record<string, number> }[]
+}
+
+export interface DrillSetupsResponse {
+  unlocked: boolean
+  gate_module: number
+  setups: DrillSetupInfo[]
+}
+
+export interface DrillRunInfo {
+  run_id: string | null
+  setup: string
+  total: number
+}
+
+export type DrillNextResponse =
+  | { done: true }
+  | { done: false; attempt_id: string; idx: number; total: number; session: SessionInfo }
+
+export interface DrillResolution {
+  attempt_id: string
+  idx: number
+  total: number
+  setup: {
+    symbol: string
+    day: string
+    setup_type: string
+    direction: 'long' | 'short'
+    fired_ts: string
+    fired_et: string
+    entry: number | null
+    stop: number | null
+    target: number | null
+    rr: number | null
+    coach_grade: GradeInfo | null
+  }
+  outcome: { outcome: string; r_multiple: number | null; exit_price: number | null }
+  user: {
+    took: boolean
+    grade: GradeInfo | null
+    trade: {
+      entry_price: number
+      exit_price: number | null
+      exit_reason: string | null
+      r_multiple: number | null
+    } | null
+  }
 }
 
 export interface KeysStatus {

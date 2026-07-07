@@ -30,7 +30,7 @@ def journal_trades(request: Request, mode: str | None = None) -> dict:
     conn = deps.get_db(request)
     sql = "SELECT * FROM trades"
     args: list = []
-    if mode in ("practice", "marketday"):
+    if mode in ("practice", "marketday", "drill"):
         sql += " WHERE mode = ?"
         args.append(mode)
     sql += " ORDER BY day DESC, entry_ts DESC LIMIT 500"
@@ -41,4 +41,4 @@ def journal_trades(request: Request, mode: str | None = None) -> dict:
 @router.get("/journal/stats")
 def journal_stats(request: Request, mode: str | None = None) -> dict:
     conn = deps.get_db(request)
-    return stats.trajectory(conn, mode if mode in ("practice", "marketday") else None)
+    return stats.trajectory(conn, mode if mode in ("practice", "marketday", "drill") else None)

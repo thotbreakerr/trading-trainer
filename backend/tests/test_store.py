@@ -1,7 +1,7 @@
 from datetime import UTC, date, datetime
 
 from app.marketdata import store
-from app.models import Bar, CalendarDay, DailyBar
+from app.models import Bar, DailyBar
 
 
 def _bar(symbol: str, ts: datetime, px: float = 100.0) -> Bar:

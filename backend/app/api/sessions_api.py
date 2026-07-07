@@ -9,14 +9,15 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from app import sessions
-from app.analysis.indicators import ema_series
 from app.api import deps
-from app.api.serialize import bar_json, day_meta, point_json
+from app.api.chart_payload import chart_series, series_json, slice_step_delta
+from app.api.serialize import bar_json, day_meta
+from app.detectors.engine import build_snapshot
+from app.grading.grader import GradeResult, grade_entry, tier_at_least
+from app.marketdata.aggregate import TF_MINUTES
 from app.marketdata.calendar import CalendarUnavailable
 from app.marketdata.fetcher import NotTradingDay
 from app.marketdata.window import BarWindow
-from app.detectors.engine import build_snapshot
-from app.grading.grader import GradeResult, grade_entry, tier_at_least
 from app.models import to_db_ts
 from app.providers.base import ProviderError
 from app.sim.engine import OrderError, SimEngine, SimOrder
@@ -109,17 +110,42 @@ def _persist_new_trades(request: Request, session: sessions.Session) -> None:
     session.persisted_trades = len(closed)
 
 
+def _check_tf(tf: str) -> None:
+    if tf not in TF_MINUTES:
+        raise HTTPException(status_code=400, detail=f"unknown timeframe {tf!r}")
+
+
 @router.post("/sessions/{session_id}/step")
-def step(session_id: str, request: Request, bars: int = 1) -> dict:
+def step(
+    session_id: str,
+    request: Request,
+    bars: int = 1,
+    tf: str | None = None,
+    symbol: str | None = None,
+) -> dict:
+    """Advance the clock. With `tf`, the response carries an aggregated delta
+    for the chart symbol so the client merges instead of refetching (contract
+    in chart_payload.py). Without `tf`: the pre-delta wire shape, unchanged."""
     session = _get(session_id)
+    if tf is not None:
+        _check_tf(tf)
     result = sessions.step_session(session, _window(request, session), bars)
     _persist_new_trades(request, session)
+    delta = None
+    if tf is not None:
+        sym = (symbol or session.symbols[0]).upper()
+        window = _window(request, session)  # reads the post-step clock
+        full = chart_series(window, sym, tf)
+        day_map = {d.day: d for d in window.days}
+        sliced = slice_step_delta(full, result.new_bars.get(sym, []), tf, day_map)
+        delta = {"symbol": sym, "tf": tf, **series_json(sliced)}
     return {
         "clock": int(result.clock.timestamp()),
         "cutoff": int(result.cutoff.timestamp()),
         "done": result.done,
         "events": result.events,
         "new_bars": {sym: [bar_json(b) for b in bs] for sym, bs in result.new_bars.items()},
+        "delta": delta,
     }
 
 
@@ -128,26 +154,18 @@ def session_bars(
     session_id: str, request: Request, symbol: str | None = None, tf: str = "5m"
 ) -> dict:
     session = _get(session_id)
+    _check_tf(tf)
     sym = (symbol or session.symbols[0]).upper()
     window = _window(request, session)
-    agg = window.bars(sym, tf)
-    closes = [b.close for b in agg]
-    times = [b.ts for b in agg]
     return {
         "symbol": sym,
         "tf": tf,
         "day": session.day.isoformat(),
         "clock": int(session.clock.now().timestamp()),
         "done": session.done,
-        "bars": [bar_json(b) for b in agg],
         "days": [day_meta(d) for d in window.days],
-        "overlays": {
-            "vwap": point_json(window.vwap(sym)),
-            "ema9": point_json(list(zip(times, ema_series(closes, 9)))),
-            "ema20": point_json(list(zip(times, ema_series(closes, 20)))),
-        },
-        "rvol": window.rvol(sym),
         "sma200": window.sma200(sym),
+        **series_json(chart_series(window, sym, tf)),
     }
 
 
@@ -162,7 +180,8 @@ def restart(session_id: str, request: Request) -> dict:
     sessions.restart_session(session)
     if session.sim is not None:  # restart-the-day = fresh account (doc §8)
         cfg = deps.get_cfg(request)
-        session.sim = SimEngine(cfg.starting_balance, cfg.intraday_leverage)
+        # preserve the sim mode — a rebuilt engine must journal the same way
+        session.sim = SimEngine(cfg.starting_balance, cfg.intraday_leverage, mode=session.sim.mode)
         session.persisted_trades = 0
     return _info(session)
 
@@ -204,6 +223,11 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
     sim = session.sim
     if sim is None:
         raise HTTPException(status_code=409, detail="this session has no sim account")
+    if session.drill_ctx is not None and session.drill_ctx.resolved:
+        raise HTTPException(
+            status_code=409,
+            detail="attempt already resolved — no trading after the reveal; go to the next instance",
+        )
     cfg = deps.get_cfg(request)
     symbol = session.symbols[0]
     now = session.clock.now()
@@ -282,6 +306,11 @@ def _grade_placement(
     if ctx is not None:
         if ctx.best_grade is None or not tier_at_least(ctx.best_grade, result.tier):
             ctx.best_grade = result.tier
+    dctx = session.drill_ctx
+    if dctx is not None and dctx.first_grade is None:
+        # the FIRST decision is the rep — later re-entries never overwrite it
+        dctx.first_grade = result
+        dctx.first_grade_ts = session.clock.now()
     return result
 
 
@@ -379,6 +408,8 @@ class SeekIn(BaseModel):
 
 @router.post("/sessions/{session_id}/seek")
 def seek(session_id: str, body: SeekIn) -> dict:
+    # NOTE: seek can rewind — clients must full-refetch bars afterwards; the
+    # step delta contract never covers rewinds.
     session = _get(session_id)
     # Doc §8: no rewind in Practice — only scripted lesson steps may navigate.
     if session.mode != "lesson":

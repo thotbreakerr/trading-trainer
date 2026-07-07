@@ -92,5 +92,18 @@ def list_setups(conn: sqlite3.Connection, day: date, mode: str | None = None) ->
     return out
 
 
+def list_mode_setups(conn: sqlite3.Connection, mode: str) -> list[dict]:
+    """Day-agnostic variant of list_setups — drill stats aggregate over it."""
+    out = []
+    for row in conn.execute("SELECT * FROM setups WHERE mode = ? ORDER BY day, fired_ts", (mode,)):
+        item = dict(row)
+        item["checklist"] = json.loads(item["checklist"]) if item["checklist"] else []
+        item["user_checklist"] = (
+            json.loads(item["user_checklist"]) if item["user_checklist"] else None
+        )
+        out.append(item)
+    return out
+
+
 def get_setup(conn: sqlite3.Connection, setup_id: int) -> sqlite3.Row | None:
     return conn.execute("SELECT * FROM setups WHERE id = ?", (setup_id,)).fetchone()

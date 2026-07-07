@@ -49,6 +49,32 @@ const ctFull = new Intl.DateTimeFormat('en-US', {
 const UP = '#26a69a'
 const DOWN = '#ef5350'
 
+const toCandle = (b: ApiBar) => ({
+  time: b.t as UTCTimestamp,
+  open: b.o,
+  high: b.h,
+  low: b.l,
+  close: b.c,
+})
+const toVolume = (b: ApiBar) => ({
+  time: b.t as UTCTimestamp,
+  value: b.v,
+  color: b.c >= b.o ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
+})
+
+/** Index from which `next` is a pure tail extension of the already-applied
+ * `prev` (ref-equal prefix; the one shared trailing element may be replaced
+ * in-place — same `t`, the merged partial bucket). null = not a tail (day/tf
+ * switch, restart shrink, history rewrite) → caller must setData. */
+function tailStart<T extends { t: number }>(prev: T[], next: T[]): number | null {
+  if (next.length < prev.length) return null
+  if (prev.length === 0) return 0
+  const shared = prev.length - 1
+  for (let i = 0; i < shared; i++) if (prev[i] !== next[i]) return null
+  if (next[shared].t !== prev[shared].t) return null
+  return next[shared] === prev[shared] ? prev.length : shared
+}
+
 export function ChartPane({
   bars,
   days,
@@ -76,6 +102,7 @@ export function ChartPane({
   })
   const shadingRef = useRef<SessionShading | null>(null)
   const lastFitKey = useRef<string>('')
+  const appliedRef = useRef<{ fitKey: string; bars: ApiBar[]; overlays?: Overlays } | null>(null)
 
   useEffect(() => {
     const host = hostRef.current
@@ -153,30 +180,62 @@ export function ChartPane({
     const volume = volumeRef.current
     if (!chart || !candles || !volume) return
 
+    // Incremental path: when the new arrays are tail extensions of what this
+    // chart already shows (step-delta merges), apply series.update() per
+    // changed bar/point instead of rebuilding every series. Any mismatch
+    // (restart shrink, tf/day switch, history rewrite, update() throwing)
+    // falls through to the setData path below.
+    const prev = appliedRef.current
+    if (prev && prev.fitKey === fitKey) {
+      const barsFrom = tailStart(prev.bars, bars)
+      const ovFrom = {
+        vwap: tailStart(prev.overlays?.vwap ?? [], overlays?.vwap ?? []),
+        ema9: tailStart(prev.overlays?.ema9 ?? [], overlays?.ema9 ?? []),
+        ema20: tailStart(prev.overlays?.ema20 ?? [], overlays?.ema20 ?? []),
+      }
+      if (
+        barsFrom !== null &&
+        ovFrom.vwap !== null &&
+        ovFrom.ema9 !== null &&
+        ovFrom.ema20 !== null
+      ) {
+        try {
+          const keepRange = chart.timeScale().getVisibleRange()
+          for (let i = barsFrom; i < bars.length; i++) {
+            candles.update(toCandle(bars[i]))
+            volume.update(toVolume(bars[i]))
+          }
+          for (const key of Object.keys(OVERLAY_STYLE) as (keyof Overlays)[]) {
+            const points = overlays?.[key] ?? []
+            const series = overlayRefs.current[key]
+            for (let i = ovFrom[key] as number; i < points.length; i++) {
+              series?.update({ time: points[i].t as UTCTimestamp, value: points[i].v })
+            }
+          }
+          if (barsFrom < bars.length) {
+            shadingRef.current?.setTimes(bars.map((b) => ({ t: b.t, s: b.s })))
+          }
+          if (keepRange) chart.timeScale().setVisibleRange(keepRange)
+          if (follow) chart.timeScale().scrollToRealTime()
+          appliedRef.current = { fitKey, bars, overlays }
+          return
+        } catch {
+          /* fall through to the full setData rebuild */
+        }
+      }
+    }
+
     const keepRange = lastFitKey.current === fitKey ? chart.timeScale().getVisibleRange() : null
 
-    candles.setData(
-      bars.map((b) => ({
-        time: b.t as UTCTimestamp,
-        open: b.o,
-        high: b.h,
-        low: b.l,
-        close: b.c,
-      })),
-    )
-    volume.setData(
-      bars.map((b) => ({
-        time: b.t as UTCTimestamp,
-        value: b.v,
-        color: b.c >= b.o ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
-      })),
-    )
+    candles.setData(bars.map(toCandle))
+    volume.setData(bars.map(toVolume))
     shadingRef.current?.setTimes(bars.map((b) => ({ t: b.t, s: b.s })))
     for (const key of Object.keys(OVERLAY_STYLE) as (keyof Overlays)[]) {
       overlayRefs.current[key]?.setData(
         (overlays?.[key] ?? []).map((p) => ({ time: p.t as UTCTimestamp, value: p.v })),
       )
     }
+    appliedRef.current = { fitKey, bars, overlays }
 
     if (keepRange) {
       chart.timeScale().setVisibleRange(keepRange) // tf switch: hold position

@@ -2,8 +2,9 @@
 
     python -m pytest -m live
 
-Requires APCA_API_KEY_ID / APCA_API_SECRET_KEY in the project .env — these
-skip cleanly when keys are absent.
+Requires APCA_API_KEY_ID / APCA_API_SECRET_KEY in .env under
+%LOCALAPPDATA%/trading-trainer (or in the environment) — these skip cleanly
+when keys are absent.
 """
 from __future__ import annotations
 
@@ -21,7 +22,7 @@ creds = load_creds()
 
 pytestmark = [
     pytest.mark.live,
-    pytest.mark.skipif(creds is None, reason="no Alpaca keys in .env"),
+    pytest.mark.skipif(creds is None, reason="no Alpaca keys in .env (local data dir)"),
 ]
 
 

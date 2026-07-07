@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from datetime import date
 
-from app.marketday.briefing import build_briefing, get_snapshot, save_snapshot
-from app.marketday.recap import build_recap
 from app.marketdata.calendar import MarketCalendar
 from app.marketdata.window import FixedClock
+from app.marketday.briefing import build_briefing, get_snapshot, save_snapshot
+from app.marketday.recap import build_recap
 from app.models import et_clock_to_utc, utcnow
-from app.stores import journal as journal_store
 from app.sim.engine import Trade
+from app.stores import journal as journal_store
 from tests.test_batch_golden import RULES, build_orb_day
 
 ANCHOR = date(2026, 6, 16)

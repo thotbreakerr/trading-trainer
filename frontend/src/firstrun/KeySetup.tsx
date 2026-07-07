@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { api } from '../lib/api'
 
 /** One-time, unskippable Alpaca key entry (doc §13). Keys are validated with
- * live calls against both hosts before being written to .env. */
+ * live calls against both hosts before being written to .env in the local
+ * data dir (outside the cloud-synced project folder). */
 export function KeySetup({ onDone }: { onDone: () => void }) {
   const [keyId, setKeyId] = useState('')
   const [secret, setSecret] = useState('')
@@ -34,7 +35,7 @@ export function KeySetup({ onDone }: { onDone: () => void }) {
             alpaca.markets
           </a>{' '}
           and paste the API key pair here — they&apos;re validated with a live call, then
-          stored locally in <code>.env</code>.
+          stored locally outside the project folder (<code>%LOCALAPPDATA%\trading-trainer</code>).
         </p>
         <label htmlFor="keyid">API Key ID</label>
         <input

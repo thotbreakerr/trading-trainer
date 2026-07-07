@@ -1,0 +1,12 @@
+# Lint config chosen to pass the existing codebase without a reformat commit:
+# defaults + import sorting, line length matching current practice.
+line-length = 120
+target-version = "py312"
+src = ["."]
+
+[lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[lint.per-file-ignores]
+# `l` is the OHLC "low" in bar-builder helpers — not ambiguous here.
+"tests/*" = ["E741"]

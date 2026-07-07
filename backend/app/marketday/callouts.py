@@ -12,8 +12,8 @@ from datetime import date, datetime, timedelta
 from app.detectors.engine import REGISTRY, live_signals
 from app.detectors.types import Signal
 from app.grading.grader import GradeResult, grade_signal
-from app.marketday.hindsight import track_outcome
 from app.marketdata.window import BarWindow, RvolBaseline
+from app.marketday.hindsight import track_outcome
 from app.models import et_date, to_db_ts
 from app.stores import setups as setups_store
 

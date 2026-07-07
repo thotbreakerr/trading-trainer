@@ -5,10 +5,10 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 from app.grading.grader import GradeResult
-from app.marketday.callouts import CalloutEngine
 from app.marketdata import store
 from app.marketdata.calendar import MarketCalendar
 from app.marketdata.window import BarWindow, ReplayClock
+from app.marketday.callouts import CalloutEngine
 from app.models import Bar, CalendarDay, DailyBar, et_clock_to_utc
 from app.stores import setups as setups_store
 from tests.test_batch_golden import RULES, build_orb_day
@@ -109,7 +109,6 @@ def test_missed_window_marks_ledger(conn):
     build_orb_day(conn)
     engine = make_engine(unlocked={"opening_range_breakout"})
     calendar = MarketCalendar(conn)
-    cal_day = calendar.day(ANCHOR)
     clock = ReplayClock(et_clock_to_utc(ANCHOR, "15:30"))  # app opened late
     window = BarWindow(conn, calendar, clock, ANCHOR, lookback_days=1)
     events = engine.on_tick(conn, window, ["SPY"], ANCHOR)

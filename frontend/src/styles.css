@@ -397,3 +397,38 @@ main { min-height: 0; overflow: hidden; }
   pointer-events: none; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 .gp-arrow { font-size: 11px; }
+
+/* ---------------------------------------------------------------- drill */
+.drill-heading { margin-top: 28px; }
+.drill-count {
+  margin: 0 3px; padding: 2px 10px; border-radius: 999px; cursor: pointer;
+  background: none; border: 1px solid var(--border); color: var(--muted); font-weight: 600;
+}
+.drill-count.active { color: var(--text); border-color: var(--accent); }
+.drill-cards { display: grid; gap: 10px; max-width: 720px; }
+.drill-card {
+  border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
+  background: var(--panel); display: grid; gap: 6px;
+}
+.drill-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.drill-card-stats { font-size: 13px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.drill-tally { display: flex; gap: 6px; margin-left: auto; }
+.drill-chip {
+  padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); color: var(--muted);
+}
+.drill-chip.textbook { color: var(--up); border-color: var(--up); }
+.drill-chip.solid { color: var(--accent); border-color: var(--accent); }
+.drill-chip.risky { color: var(--warn); border-color: var(--warn); }
+.drill-chip.reckless { color: var(--down); border-color: var(--down); }
+.drill-chip.passed { color: var(--muted); }
+.drill-resolved { display: grid; gap: 12px; max-width: 640px; }
+.resolution-card {
+  border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
+  background: var(--panel); display: grid; gap: 8px;
+}
+.resolution-card h4 { margin: 0; }
+.resolution-bracket { color: var(--muted); font-variant-numeric: tabular-nums; }
+.resolution-outcome.up { color: var(--up); }
+.resolution-outcome.down { color: var(--down); }
+.resolution-trade { color: var(--muted); font-variant-numeric: tabular-nums; }

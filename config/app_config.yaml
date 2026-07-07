@@ -18,5 +18,13 @@ poll_interval_seconds: 60    # Market Day REST polling cadence
 # Set an absolute path here to override, or leave null for the default.
 db_path: null
 
+# Backups: small user-data-only snapshots (progress/setups/orders/trades/
+# briefings — the tables the bar cache can't rebuild). Cold single files are
+# safe in OneDrive, unlike the live WAL database, so the default destination
+# inside the project folder is deliberate: it doubles as off-machine backup.
+backup_dir: null                # default: <repo>/backups
+backup_keep: 14                 # newest K kept; 0 disables backups
+backup_min_interval_hours: 12   # at most one backup per this window
+
 # Escape hatches (doc §12) — config-only, no UI
 allow_untrained_trading: false

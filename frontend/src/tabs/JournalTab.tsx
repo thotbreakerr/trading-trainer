@@ -15,7 +15,7 @@ function fmtR(v: number | null): string {
 }
 
 export function JournalTab() {
-  const [mode, setMode] = useState<'all' | 'practice' | 'marketday'>('all')
+  const [mode, setMode] = useState<'all' | 'practice' | 'marketday' | 'drill'>('all')
   const [tf, setTf] = useState<Timeframe>('5m')
   const modeParam = mode === 'all' ? undefined : mode
   const tradesQ = useQuery({
@@ -26,7 +26,7 @@ export function JournalTab() {
     queryKey: ['journalStats', mode],
     queryFn: () => api.journalStats(modeParam),
   })
-  const replay = useReplaySession()
+  const replay = useReplaySession(tf)
   const sessionQ = useQuery({
     queryKey: ['sessionBars', replay.session?.id ?? 'none', tf],
     queryFn: () => api.sessionBars(replay.session!.id, tf),
@@ -84,7 +84,7 @@ export function JournalTab() {
       <div className="view-head">
         <h2>Journal</h2>
         <div className="view-chips">
-          {(['all', 'practice', 'marketday'] as const).map((m) => (
+          {(['all', 'practice', 'marketday', 'drill'] as const).map((m) => (
             <button key={m} className={mode === m ? 'active' : ''} onClick={() => setMode(m)}>
               {m === 'marketday' ? 'market day' : m}
             </button>

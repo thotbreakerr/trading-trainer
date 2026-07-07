@@ -55,7 +55,7 @@ export function MarketDayTab() {
   const md = mdQ.data
   useCalloutSound(md?.callouts ?? [])
 
-  const replay = useReplaySession()
+  const replay = useReplaySession(tf)
   const inReplay = replay.session !== null
 
   const marketState = md?.market.state ?? symbolsQ.data?.state ?? 'unknown'

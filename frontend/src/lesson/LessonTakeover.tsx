@@ -129,7 +129,11 @@ export function LessonTakeover({
   const step: LessonStepData | null = stepIndex != null ? (steps[stepIndex] ?? null) : null
   useEffect(() => setStepDone(step?.completed ?? false), [step?.index, step?.completed])
 
-  const replay = useLessonReplay(moduleNumber, step?.type === 'replay' || step?.type === 'practice' ? step : null)
+  const replay = useLessonReplay(
+    moduleNumber,
+    step?.type === 'replay' || step?.type === 'practice' ? step : null,
+    tf,
+  )
 
   // Chart source: the step's own session, else the module's default chart day.
   const chartSymbol = step?.symbol ?? lesson?.chart?.symbol ?? null

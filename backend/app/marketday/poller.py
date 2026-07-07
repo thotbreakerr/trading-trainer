@@ -19,10 +19,10 @@ from typing import Callable
 from app import db, sessions
 from app.config import AppConfig
 from app.detectors.engine import unlocked_setups
-from app.marketday.callouts import CalloutEngine
 from app.marketdata.calendar import CalendarUnavailable, MarketCalendar
 from app.marketdata.fetcher import Fetcher
 from app.marketdata.window import BarWindow, RvolBaseline
+from app.marketday.callouts import CalloutEngine
 from app.models import ET, utcnow
 from app.sim.engine import SimEngine
 from app.stores import journal, progress

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-from app import db
 from app.config import AppConfig
-from app.marketday.poller import MarketDayPoller
 from app.marketdata.calendar import MarketCalendar
+from app.marketday.poller import MarketDayPoller
 from app.models import et_clock_to_utc
 from app.stores import setups as setups_store
 from tests.test_batch_golden import RULES, build_orb_day

@@ -18,7 +18,7 @@ export default function App() {
   if (keys.isError) {
     return (
       <div className="boot error">
-        Backend unreachable — start it with backend\run.ps1 (expects http://127.0.0.1:8000).
+        Backend unreachable — start it with run.ps1 at the repo root (expects http://127.0.0.1:8000).
       </div>
     )
   }

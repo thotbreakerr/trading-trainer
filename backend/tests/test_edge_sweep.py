@@ -21,12 +21,12 @@ regresses, something here (or something it names) goes red.
 from __future__ import annotations
 
 import asyncio
-from datetime import date, timedelta
+from datetime import date
 
 import httpx
 
-from app.marketday.poller import MAX_BACKOFF_S, MarketDayPoller
 from app.marketdata.calendar import MarketCalendar
+from app.marketday.poller import MAX_BACKOFF_S, MarketDayPoller
 from app.models import et_clock_to_utc
 from app.providers.alpaca import AlpacaProvider
 from tests.test_batch_golden import RULES, build_orb_day
