@@ -215,8 +215,12 @@ export function ChartPane({
           if (barsFrom < bars.length) {
             shadingRef.current?.setTimes(bars.map((b) => ({ t: b.t, s: b.s })))
           }
-          if (keepRange) chart.timeScale().setVisibleRange(keepRange)
-          if (follow) chart.timeScale().scrollToRealTime()
+          try {
+            if (keepRange) chart.timeScale().setVisibleRange(keepRange)
+            if (follow) chart.timeScale().scrollToRealTime()
+          } catch {
+            /* range restore is cosmetic — keep the incremental update */
+          }
           appliedRef.current = { fitKey, bars, overlays }
           return
         } catch {
@@ -237,20 +241,36 @@ export function ChartPane({
     }
     appliedRef.current = { fitKey, bars, overlays }
 
-    if (keepRange) {
-      chart.timeScale().setVisibleRange(keepRange) // tf switch: hold position
-      if (follow) chart.timeScale().scrollToRealTime()
-    } else if (bars.length > 0) {
-      const anchor = days[days.length - 1]
+    const fitAnchor = () => {
+      if (bars.length === 0) return
       lastFitKey.current = fitKey
-      if (anchor) {
-        chart.timeScale().setVisibleRange({
-          from: anchor.session_open as UTCTimestamp,
-          to: anchor.session_close as UTCTimestamp,
-        })
-      } else {
-        chart.timeScale().fitContent()
+      const anchor = days[days.length - 1]
+      try {
+        if (anchor) {
+          chart.timeScale().setVisibleRange({
+            from: anchor.session_open as UTCTimestamp,
+            to: anchor.session_close as UTCTimestamp,
+          })
+        } else {
+          chart.timeScale().fitContent()
+        }
+      } catch {
+        chart.timeScale().fitContent() // a plain fit always maps to the data
       }
+    }
+
+    if (keepRange) {
+      try {
+        // hold scroll position across tf switches and step-delta appends
+        chart.timeScale().setVisibleRange(keepRange)
+        if (follow) chart.timeScale().scrollToRealTime()
+      } catch {
+        // the saved range points at times the new data no longer has
+        // (restart rewind, symbol switch) — re-fit instead of crashing
+        fitAnchor()
+      }
+    } else {
+      fitAnchor()
     }
   }, [bars, days, fitKey, overlays, follow])
 
