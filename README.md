@@ -7,6 +7,12 @@ data** — structured lessons replayed on real historical days, plus a daily coa
 that watches today's (15-min-delayed) market, calls out textbook setups, and
 grades your decisions. Full product spec: [daytrading_trainer_final_plan.md](daytrading_trainer_final_plan.md).
 
+## Demo
+
+[![Day Trading Trainer demo](artifacts/trading-trainer-demo/cover.png)](artifacts/trading-trainer-demo/trading-trainer-demo.mp4)
+
+[Watch the 45-second demo video](artifacts/trading-trainer-demo/trading-trainer-demo.mp4) — pre-market planning, adaptive workouts, blind historical replay, coaching feedback, and decision review.
+
 ## Training workflows
 
 - **Adaptive daily workout** — three resumable blocks selected from weak grades,
