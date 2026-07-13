@@ -19,11 +19,12 @@ export function WatchlistRail({
   onSelect: (s: string) => void
 }) {
   return (
-    <aside className="rail">
+    <aside className="rail" aria-label="Watchlist">
       {symbols.map((s) => (
         <button
           key={s.symbol}
           className={`rail-item ${s.symbol === selected ? 'selected' : ''}`}
+          aria-pressed={s.symbol === selected}
           onClick={() => onSelect(s.symbol)}
         >
           <span className="sym">{s.symbol}</span>

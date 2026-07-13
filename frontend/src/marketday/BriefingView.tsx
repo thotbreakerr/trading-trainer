@@ -1,7 +1,8 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import type { BriefingCard } from '../lib/types'
 import { PredictionPanel } from './PredictionPanel'
+import { EmptyState, ErrorState, LoadingState } from '../shell/AsyncState'
 
 function fmt(v: number | null | undefined, digits = 2): string {
   return v == null ? '—' : v.toFixed(digits)
@@ -44,10 +45,14 @@ function Card({ card }: { card: BriefingCard }) {
 export function BriefingView() {
   const queryClient = useQueryClient()
   const briefingQ = useQuery({ queryKey: ['briefing'], queryFn: () => api.briefing() })
+  const refresh = useMutation({
+    mutationFn: () => api.briefing(true),
+    onSuccess: async () => queryClient.invalidateQueries({ queryKey: ['briefing'] }),
+  })
   const briefing = briefingQ.data
 
-  if (briefingQ.isPending) return <div className="boot">Building the briefing…</div>
-  if (briefingQ.isError) return <div className="boot error">⚠ {String(briefingQ.error)}</div>
+  if (briefingQ.isPending) return <LoadingState label="Building the morning plan" />
+  if (briefingQ.isError) return <ErrorState title="Could not build the morning plan" error={briefingQ.error} onRetry={() => void briefingQ.refetch()} />
   if (!briefing) return null
 
   const times = briefing.game_plan.key_times
@@ -67,13 +72,13 @@ export function BriefingView() {
         {briefing.half_day && <span className="banner">Half day — early close</span>}
         <button
           className="btn-replay"
-          onClick={() =>
-            void api.briefing(true).then(() => queryClient.invalidateQueries({ queryKey: ['briefing'] }))
-          }
+          disabled={refresh.isPending}
+          onClick={() => refresh.mutate()}
         >
-          ↻ refresh view
+          {refresh.isPending ? 'Refreshing…' : '↻ Refresh data'}
         </button>
       </div>
+      {refresh.isError && <p className="banner" role="alert">⚠ {String(refresh.error)}</p>}
       <div className="brief-cards">
         {briefing.cards.map((c) => (
           <Card key={c.symbol} card={c} />
@@ -104,6 +109,7 @@ export function BriefingView() {
           <p className="muted">{briefing.game_plan.note}</p>
         </div>
       </div>
+      {briefing.cards.length === 0 && <EmptyState title="No watchlist data yet" body="Refresh after the initial market-data backfill completes." action={<button className="btn-replay" onClick={() => refresh.mutate()}>Refresh data</button>} />}
       <PredictionPanel day={briefing.day} symbols={briefing.focus.map((item) => item.symbol)} />
     </div>
   )

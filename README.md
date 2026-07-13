@@ -22,6 +22,24 @@ grades your decisions. Full product spec: [daytrading_trainer_final_plan.md](day
 - **Session risk coach** — visible per-trade/open-risk, loss, trade-count,
   cooldown, and protective-stop rules in coaching or enforcement mode.
 
+## Navigation and responsive behavior
+
+- **Market Day lifecycle** — `/today/plan`, `/today/trade`, and `/today/review`
+  expose the preparation, execution, and review phases as durable URLs. The
+  selected symbol and timeframe remain in the query string for shareable chart
+  context.
+- **Learning hub** — `/learn/today`, `/learn/curriculum`, `/learn/drills`, and
+  `/learn/scenarios` separate the daily recommendation from the full roadmap;
+  `/learn/module/:module` resumes a specific lesson.
+- **Decision review** — `/journal/:tradeId` opens a specific journal entry and
+  survives refresh/back/forward navigation.
+- **Small screens** — the watchlist becomes a horizontal rail, the chart keeps a
+  usable full-width canvas, and practice/live-coach controls collapse below it.
+  Tablet layouts keep the chart primary and move coaching controls beneath it.
+- **Accessibility** — all interactive surfaces have visible keyboard focus,
+  selected controls expose their state, trade rows use real buttons, and lesson,
+  drill, scenario, and tape takeovers trap focus and close with Escape.
+
 ## Running
 
 One command from a fresh clone — creates the venv, installs dependencies,

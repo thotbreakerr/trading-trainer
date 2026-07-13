@@ -10,12 +10,14 @@ export function TimeframeSwitcher({
   onChange: (tf: Timeframe) => void
 }) {
   return (
-    <div className="tf-switcher">
+    <div className="tf-switcher" aria-label="Chart timeframe">
       {TFS.map((t) => (
         <button
           key={t}
           data-pointer-id={`tf-${t}`}
           className={t === tf ? 'active' : ''}
+          aria-pressed={t === tf}
+          aria-label={`${t} timeframe`}
           onClick={() => onChange(t)}
         >
           {t}

@@ -9,8 +9,10 @@ import { ReplayControls } from '../replay/ReplayControls'
 import { useReplaySession } from '../replay/useReplaySession'
 import { OrderTicket } from '../sim/OrderTicket'
 import { PositionPanel } from '../sim/PositionPanel'
+import { useTakeoverA11y } from '../lib/useTakeoverA11y'
 
 export function ScenarioTakeover({ id, onExit }: { id: string; onExit: () => void }) {
+  const takeoverRef = useTakeoverA11y(onExit)
   const [tf, setTf] = useState<Timeframe>('5m')
   const [resolution, setResolution] = useState<ScenarioResolution | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +44,7 @@ export function ScenarioTakeover({ id, onExit }: { id: string; onExit: () => voi
   }
   const close = () => { replay.exit(); onExit() }
   return (
-    <div className="lesson-takeover">
+    <div ref={takeoverRef} className="lesson-takeover" role="dialog" aria-modal="true" aria-label="Historical scenario" tabIndex={-1}>
       <header className="lesson-header">
         <button className="lesson-back" onClick={close}>← Learn</button>
         <span className="lesson-title">{resolution ? `${resolution.setup_type.replace(/_/g, ' ')} — ${resolution.symbol}` : 'Blind historical scenario'}</span>

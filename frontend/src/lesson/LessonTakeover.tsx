@@ -11,6 +11,7 @@ import { PositionPanel } from '../sim/PositionPanel'
 import { GuidedPointer } from './GuidedPointer'
 import { Markdown } from './Markdown'
 import { useLessonReplay } from './useLessonReplay'
+import { useTakeoverA11y } from '../lib/useTakeoverA11y'
 
 const ct = new Intl.DateTimeFormat('en-US', {
   timeZone: 'America/Chicago',
@@ -108,6 +109,7 @@ export function LessonTakeover({
   moduleNumber: number
   onExit: () => void
 }) {
+  const takeoverRef = useTakeoverA11y(onExit)
   const queryClient = useQueryClient()
   const lessonQ = useQuery({
     queryKey: ['lesson', moduleNumber],
@@ -195,7 +197,7 @@ export function LessonTakeover({
     (step.type === 'replay' && replay.scriptFinished)
 
   return (
-    <div className="lesson-takeover">
+    <div ref={takeoverRef} className="lesson-takeover" role="dialog" aria-modal="true" aria-label="Guided lesson" tabIndex={-1}>
       <header className="lesson-header">
         <button className="lesson-back" onClick={onExit}>
           ← Modules

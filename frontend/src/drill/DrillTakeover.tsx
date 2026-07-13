@@ -9,6 +9,7 @@ import { OrderTicket } from '../sim/OrderTicket'
 import { PositionPanel } from '../sim/PositionPanel'
 import { ResolutionCard } from './ResolutionCard'
 import { useDrillRun } from './useDrillRun'
+import { useTakeoverA11y } from '../lib/useTakeoverA11y'
 
 const ct = new Intl.DateTimeFormat('en-US', {
   timeZone: 'America/Chicago',
@@ -34,6 +35,7 @@ export function DrillTakeover({
   onExit: () => void
   onComplete?: () => void
 }) {
+  const takeoverRef = useTakeoverA11y(onExit)
   const [tf, setTf] = useState<Timeframe>('5m')
   const drill = useDrillRun(setupKey, count, tf)
   const { replay } = drill
@@ -84,7 +86,7 @@ export function DrillTakeover({
 
   if (drill.empty) {
     return (
-      <div className="lesson-takeover">
+      <div ref={takeoverRef} className="lesson-takeover" role="dialog" aria-modal="true" aria-label={`${label} drill`} tabIndex={-1}>
         <header className="lesson-header">
           <button className="lesson-back" onClick={onExit}>
             ← Learn
@@ -107,7 +109,7 @@ export function DrillTakeover({
 
   if (drill.phase === 'summary') {
     return (
-      <div className="lesson-takeover">
+      <div ref={takeoverRef} className="lesson-takeover" role="dialog" aria-modal="true" aria-label={`${label} drill summary`} tabIndex={-1}>
         <header className="lesson-header">
           <button className="lesson-back" onClick={onExit}>
             ← Learn
@@ -138,7 +140,7 @@ export function DrillTakeover({
     replay.clock != null ? `${ct.format(new Date(replay.clock * 1000))} CT` : null
 
   return (
-    <div className="lesson-takeover">
+    <div ref={takeoverRef} className="lesson-takeover" role="dialog" aria-modal="true" aria-label={`${label} drill`} tabIndex={-1}>
       <header className="lesson-header">
         <button className="lesson-back" onClick={onExit}>
           ← Learn

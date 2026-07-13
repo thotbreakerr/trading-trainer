@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import type { WorkoutItem } from '../lib/types'
+import { ErrorState, LoadingState } from '../shell/AsyncState'
 
 export function DailyWorkoutCard({ onStart }: { onStart: (item: WorkoutItem, runId: number) => void }) {
   const workoutQ = useQuery({ queryKey: ['dailyWorkout'], queryFn: api.dailyWorkout, staleTime: 30_000 })
   const workout = workoutQ.data
-  if (workoutQ.isPending) return <section className="daily-workout"><p className="muted">Building today’s workout…</p></section>
-  if (workoutQ.isError) return <section className="daily-workout"><p className="banner">⚠ {String(workoutQ.error)}</p></section>
+  if (workoutQ.isPending) return <section className="daily-workout"><LoadingState label="Building today’s workout" /></section>
+  if (workoutQ.isError) return <section className="daily-workout"><ErrorState title="Could not build today’s workout" error={workoutQ.error} onRetry={() => void workoutQ.refetch()} /></section>
   if (!workout?.unlocked) return <section className="daily-workout"><h2>Today’s workout</h2><p className="muted">Complete Module {workout?.gate_module ?? 8} to unlock adaptive setup reps.</p></section>
   if (!workout.run) return null
   const done = workout.items.filter((item) => item.status === 'complete').length

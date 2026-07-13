@@ -18,11 +18,13 @@ export function TopBar() {
   const state = symbols.data?.state ?? 'unknown'
   return (
     <header className="topbar">
-      <span className="title">Day Trading Trainer</span>
-      <span className={`state-chip ${state}`}>{STATE_LABEL[state] ?? state}</span>
+      <span className="title">
+        <span className="title-full">Day Trading Trainer</span>
+        <span className="title-short">Trading Trainer</span>
+      </span>
+      <span className={`state-chip ${state}`} aria-live="polite">{STATE_LABEL[state] ?? state}</span>
       <span className="spacer" />
-      {/* paper equity becomes live with the sim engine */}
-      <span className="equity">$30,000.00 paper</span>
+      <span className="equity">Training simulator</span>
     </header>
   )
 }

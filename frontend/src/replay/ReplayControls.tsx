@@ -44,27 +44,28 @@ export function ReplayControls({
         </span>
       )}
       {done && <span className="replay-done">session close</span>}
-      <button onClick={onPlayPause} disabled={done} title={playing ? 'Pause' : 'Play'}>
+      <button onClick={onPlayPause} disabled={done} title={playing ? 'Pause' : 'Play'} aria-label={playing ? 'Pause replay' : 'Play replay'}>
         {playing ? '⏸' : '▶'}
       </button>
-      <button onClick={onStepOne} disabled={playing || done} title="Step one bar">
+      <button onClick={onStepOne} disabled={playing || done} title="Step one bar" aria-label="Step one bar">
         +1
       </button>
-      <div className="speed-group">
+      <div className="speed-group" aria-label="Replay speed">
         {SPEEDS.map((s) => (
           <button
             key={s}
             className={s === speed ? 'active' : ''}
+            aria-pressed={s === speed}
             onClick={() => onSpeed(s)}
           >
             {s}×
           </button>
         ))}
       </div>
-      <button onClick={onRestart} title="Restart the day (no rewind)">
+      <button onClick={onRestart} title="Restart the day (no rewind)" aria-label="Restart replay">
         ↺ restart
       </button>
-      <button onClick={onExit} title="Exit replay">
+      <button onClick={onExit} title="Exit replay" aria-label="Exit replay">
         ✕
       </button>
     </div>

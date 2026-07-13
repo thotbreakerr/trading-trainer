@@ -1,22 +1,24 @@
-export type Tab = 'market' | 'learn' | 'journal'
+import { handleAppLink, type PrimaryTab } from '../lib/routing'
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'market', label: 'Market Day' },
-  { id: 'learn', label: 'Learn' },
-  { id: 'journal', label: 'Journal' },
+const TABS: { id: PrimaryTab; label: string; href: string }[] = [
+  { id: 'market', label: 'Market Day', href: '/today/trade' },
+  { id: 'learn', label: 'Learn', href: '/learn/today' },
+  { id: 'journal', label: 'Journal', href: '/journal' },
 ]
 
-export function TabNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) {
+export function TabNav({ tab }: { tab: PrimaryTab }) {
   return (
-    <nav className="tabnav">
-      {TABS.map((t) => (
-        <button
-          key={t.id}
-          className={tab === t.id ? 'active' : ''}
-          onClick={() => onChange(t.id)}
+    <nav className="tabnav" aria-label="Primary navigation">
+      {TABS.map((item) => (
+        <a
+          key={item.id}
+          href={item.href}
+          className={tab === item.id ? 'active' : ''}
+          aria-current={tab === item.id ? 'page' : undefined}
+          onClick={(event) => handleAppLink(event, item.href)}
         >
-          {t.label}
-        </button>
+          {item.label}
+        </a>
       ))}
     </nav>
   )

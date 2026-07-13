@@ -10,7 +10,6 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 
 from app import backup, db
 from app.api import (
@@ -32,6 +31,7 @@ from app.marketdata.calendar import MarketCalendar
 from app.marketdata.fetcher import Fetcher
 from app.marketday.poller import MarketDayPoller
 from app.models import ET, utcnow
+from app.spa import SPAStaticFiles
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +109,7 @@ def create_app() -> FastAPI:
     # Built UI (run.ps1 builds it). Registered routes (/api/*, /docs) win over
     # the mount; without dist the API still serves — Vite covers the UI in dev.
     if (FRONTEND_DIST / "index.html").is_file():
-        app.mount("/", StaticFiles(directory=FRONTEND_DIST, html=True), name="frontend")
+        app.mount("/", SPAStaticFiles(directory=FRONTEND_DIST, html=True), name="frontend")
     else:
         logger.warning("frontend/dist missing — serving API only (build with run.ps1 -Build)")
     return app

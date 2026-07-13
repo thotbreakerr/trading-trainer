@@ -79,10 +79,10 @@ export function OrderTicket({
     <div className="ticket">
       <div className="ticket-title">Bracket order</div>
       <div className="ticket-row side-row">
-        <button className={`side buy ${side === 'buy' ? 'active' : ''}`} onClick={() => setSide('buy')}>
+        <button className={`side buy ${side === 'buy' ? 'active' : ''}`} aria-pressed={side === 'buy'} onClick={() => setSide('buy')}>
           Long
         </button>
-        <button className={`side sell ${side === 'sell' ? 'active' : ''}`} onClick={() => setSide('sell')}>
+        <button className={`side sell ${side === 'sell' ? 'active' : ''}`} aria-pressed={side === 'sell'} onClick={() => setSide('sell')}>
           Short
         </button>
       </div>

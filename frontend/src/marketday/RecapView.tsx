@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import type { RecapLedgerItem, RecapTrade } from '../lib/types'
+import { EmptyState, ErrorState, LoadingState } from '../shell/AsyncState'
 
 function r(v: number | null | undefined): string {
   if (v == null) return '—'
@@ -13,8 +14,8 @@ export function RecapView({
   onReview: (symbol: string, day: string, startAt: number) => void
 }) {
   const recapQ = useQuery({ queryKey: ['recap'], queryFn: () => api.recap() })
-  if (recapQ.isPending) return <div className="boot">Building the recap…</div>
-  if (recapQ.isError) return <div className="boot error">⚠ {String(recapQ.error)}</div>
+  if (recapQ.isPending) return <LoadingState label="Building the session review" />
+  if (recapQ.isError) return <ErrorState title="Could not build the session review" error={recapQ.error} onRetry={() => void recapQ.refetch()} />
   const recap = recapQ.data!
   const traj = recap.trajectory
 
@@ -29,7 +30,7 @@ export function RecapView({
 
       <h3>Setup ledger</h3>
       {recap.ledger.length === 0 ? (
-        <p className="muted">Nothing fired on the watchlist today.</p>
+        <EmptyState title="No setups fired" body="The watchlist did not produce a qualifying setup for this session." />
       ) : (
         <table className="recap-table">
           <thead>
@@ -62,7 +63,7 @@ export function RecapView({
 
       <h3>Your trades</h3>
       {recap.trades.length === 0 ? (
-        <p className="muted">No trades today.</p>
+        <EmptyState title="No trades recorded" body="Review the setup ledger, or replay an opportunity to practice the decision." />
       ) : (
         <table className="recap-table">
           <thead>
