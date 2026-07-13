@@ -3,6 +3,29 @@
 Newest entries on top. One entry per work session, plus extra entries when a
 decision is worth capturing on its own.
 
+## 2026-07-13 — Training intelligence roadmap implemented
+
+**What changed:** Added all five planned product improvements: an adaptive daily
+workout, pre-market prediction commitments with lock/scoring, a decision-focused
+journal with bar-derived execution metrics and chart markers, a filterable blind
+scenario explorer with playlists, and shared session risk coaching/guardrails.
+The backend now has numbered transactional migrations, explicit user/cache/meta
+backup classification, feature flags, and focused regression coverage for each
+new domain.
+
+**Architecture:** New features compose the existing detector, replay, grading,
+hindsight, and simulation engines. Scenario answers remain absent from blind
+list/session payloads until reveal. Journal excursion metrics use a fixed clock
+at the recorded exit; prediction scores use an end-of-day fixed clock. Both go
+through `BarWindow`, so the existing mechanical no-lookahead tests continue to
+enforce the data boundary. Risk evaluation is shared by replay, lesson, drill,
+scenario, and Market Day order paths and supports `coach` or `enforce` mode.
+
+**Verification:** 190 backend tests passed (2 live tests deselected), ruff passed
+over `app` and `tests`, 26 frontend tests passed, and the production TypeScript/
+Vite build completed. The only frontend build messages were upstream Vite plugin
+deprecation warnings for esbuild options.
+
 ## 2026-07-09 — Five improvements shipped; running on live Alpaca data
 
 **What changed:** Built five improvements on top of the v1 app and pushed them to

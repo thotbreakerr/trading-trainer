@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import type { BriefingCard } from '../lib/types'
+import { PredictionPanel } from './PredictionPanel'
 
 function fmt(v: number | null | undefined, digits = 2): string {
   return v == null ? '—' : v.toFixed(digits)
@@ -103,6 +104,7 @@ export function BriefingView() {
           <p className="muted">{briefing.game_plan.note}</p>
         </div>
       </div>
+      <PredictionPanel day={briefing.day} symbols={briefing.focus.map((item) => item.symbol)} />
     </div>
   )
 }

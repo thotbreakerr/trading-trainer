@@ -147,6 +147,47 @@ export interface OrderResult {
   rejected: boolean
   reason: string | null
   grade: GradeInfo | null
+  risk: RiskDecision | null
+}
+
+export interface RiskIssue {
+  rule_key: string
+  detail: string
+  disposition: 'warned' | 'blocked'
+}
+
+export interface RiskPolicy {
+  mode: 'coach' | 'enforce'
+  max_risk_per_trade_pct: number
+  max_daily_loss_r: number
+  max_trades_per_day: number
+  cooldown_minutes: number
+  max_open_risk_pct: number
+  require_protective_stop: boolean
+}
+
+export interface RiskUsage {
+  closed_r: number
+  trades: number
+  open_risk_amount: number
+  open_risk_pct: number | null
+  cooldown_remaining_minutes: number
+}
+
+export interface RiskDecision {
+  allowed: boolean
+  mode: 'coach' | 'enforce'
+  issues: RiskIssue[]
+  proposed_risk_amount: number
+  proposed_risk_pct: number
+  usage: RiskUsage
+  policy: RiskPolicy
+}
+
+export interface RiskStatus {
+  policy: RiskPolicy
+  usage: RiskUsage
+  events: (RiskIssue & { action: string; ts: string })[]
 }
 
 export interface SizingResult {
@@ -206,6 +247,7 @@ export interface MarketDayState {
     positions: { symbol: string; qty: number; avg_price: number; unrealized: number }[]
     flattened: boolean
   } | null
+  risk: RiskStatus | null
 }
 
 export interface BriefingCard {
@@ -297,7 +339,8 @@ export interface RecapData {
 }
 
 export interface JournalTrade {
-  mode: 'practice' | 'marketday' | 'drill'
+  id: number
+  mode: 'practice' | 'marketday' | 'drill' | 'scenario'
   day: string
   symbol: string
   direction: 'long' | 'short'
@@ -308,7 +351,75 @@ export interface JournalTrade {
   exit_reason: string | null
   r_multiple: number | null
   grade: string | null
-  review: { symbol: string; day: string; start_at: number }
+  setup_type: string | null
+  replay: { symbol: string; day: string; start_at: number }
+  review: TradeReview
+}
+
+export interface PredictionScore {
+  status: 'pending_data' | 'pending_session' | 'late_not_scored' | 'scored'
+  total: number | null
+  direction_correct?: boolean
+  actual_direction?: string
+  day_move_pct?: number
+  level_hit?: boolean
+  brier?: number
+  plan_points?: number
+}
+
+export interface BriefingPrediction {
+  id: number
+  day: string
+  symbol: string
+  direction: 'bullish' | 'bearish' | 'neutral'
+  key_level: number | null
+  setup: string
+  invalidation: string
+  confidence: number
+  created_at: string
+  updated_at: string
+  locked_at: string | null
+  is_late: boolean
+  score: PredictionScore
+}
+
+export interface PredictionsResponse {
+  day: string
+  locked: boolean
+  predictions: BriefingPrediction[]
+}
+
+export interface TradeReview {
+  thesis: string
+  notes: string
+  confidence: number | null
+  emotion: string
+  mistakes: string[]
+  tags: string[]
+  reviewed: boolean
+  updated_at: string | null
+}
+
+export interface TradeMarker {
+  t: number
+  price: number
+  kind: 'entry' | 'exit'
+  label: string
+}
+
+export interface TradeMetrics {
+  mfe_r: number | null
+  mae_r: number | null
+  available_r: number | null
+  entry_efficiency: number | null
+  exit_efficiency: number | null
+  duration_minutes: number | null
+  bars_measured: number
+  markers: TradeMarker[]
+}
+
+export interface JournalTradeDetail extends JournalTrade {
+  metrics: TradeMetrics
 }
 
 export type LessonStatus = 'available' | 'locked' | 'complete' | 'unavailable'
@@ -419,6 +530,62 @@ export interface DrillResolution {
       r_multiple: number | null
     } | null
   }
+}
+
+export interface ScenarioSummary {
+  id: string
+  symbol: string
+  day: string
+  blind: boolean
+  setup_type?: string
+  direction?: 'long' | 'short'
+  grade?: string | null
+  fired_et?: string
+}
+
+export interface ScenarioResolution {
+  id: string
+  symbol: string
+  day: string
+  setup_type: string
+  direction: 'long' | 'short'
+  fired_ts: string
+  fired_et: string
+  entry: number
+  stop: number
+  target: number
+  grade: string | null
+  checklist: { label: string; passed: boolean; detail: string }[]
+  outcome: string
+  outcome_r: number | null
+  exit_price: number | null
+}
+
+export interface ScenarioPlaylist {
+  id: number
+  name: string
+  created_at: string
+  items: number
+}
+
+export interface WorkoutItem {
+  id: number
+  run_id: number
+  position: number
+  setup: string
+  label: string
+  reps: number
+  weakness_score: number
+  reason: string
+  status: 'pending' | 'complete'
+  completed_at: string | null
+}
+
+export interface DailyWorkout {
+  unlocked: boolean
+  gate_module?: number
+  run: { id: number; day: string; status: 'active' | 'complete'; created_at: string } | null
+  items: WorkoutItem[]
 }
 
 export interface KeysStatus {

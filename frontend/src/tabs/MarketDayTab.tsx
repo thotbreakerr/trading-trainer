@@ -236,6 +236,11 @@ export function MarketDayTab() {
               </span>
             </div>
           ))}
+          {md.risk && <div className="risk-panel">
+            <div className="risk-head"><strong>Risk coach</strong><span className={`risk-mode ${md.risk.policy.mode}`}>{md.risk.policy.mode}</span></div>
+            <div className="risk-usage"><span>P/L {md.risk.usage.closed_r.toFixed(2)}R</span><span>Trades {md.risk.usage.trades}/{md.risk.policy.max_trades_per_day}</span><span>Open {(md.risk.usage.open_risk_pct ?? 0).toFixed(2)}%</span></div>
+            {md.risk.events.slice(0, 2).map((event, i) => <span key={`${event.ts}:${i}`} className={`risk-event ${event.disposition}`}>⚠ {event.detail}</span>)}
+          </div>}
           {!md.trading_unlocked && (
             <div className="muted">
               Observe mode — trading unlocks after Module 9 (doc rules).

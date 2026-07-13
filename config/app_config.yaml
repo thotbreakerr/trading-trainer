@@ -28,3 +28,21 @@ backup_min_interval_hours: 12   # at most one backup per this window
 
 # Escape hatches (doc §12) — config-only, no UI
 allow_untrained_trading: false
+
+# Feature rollout switches. Set one false and restart to hide/disable it.
+features:
+  rich_journal: true
+  scenario_explorer: true
+  adaptive_workouts: true
+  predictions: true
+  risk_coach: true
+
+# Session discipline. "coach" records and warns; "enforce" also blocks.
+risk_guardrails:
+  mode: coach
+  max_risk_per_trade_pct: 1.0
+  max_daily_loss_r: 3.0
+  max_trades_per_day: 5
+  cooldown_minutes: 5
+  max_open_risk_pct: 2.0
+  require_protective_stop: true

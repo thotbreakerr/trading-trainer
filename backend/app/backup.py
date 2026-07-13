@@ -23,8 +23,13 @@ from app.models import utcnow
 logger = logging.getLogger(__name__)
 
 # Copy order satisfies the trades.setup_id -> setups.id foreign key.
-USER_TABLES = ("progress", "setups", "orders", "trades", "briefings")
-CACHE_TABLES = ("bars_1m", "bars_daily", "cached_days", "calendar")
+USER_TABLES = (
+    "progress", "setups", "orders", "trades", "briefings", "trade_reviews",
+    "scenario_playlists", "scenario_playlist_items", "workout_runs", "workout_items",
+    "briefing_predictions", "risk_events",
+)
+CACHE_TABLES = ("bars_1m", "bars_daily", "cached_days", "calendar", "scenario_catalog")
+META_TABLES = ("schema_migrations",)
 
 _NAME_RE = re.compile(r"^trainer-(\d{8})-(\d{6})\.db$")
 

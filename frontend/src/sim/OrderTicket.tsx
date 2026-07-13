@@ -25,6 +25,7 @@ export function OrderTicket({
   const [sizing, setSizing] = useState<SizingResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [grade, setGrade] = useState<GradeInfo | null>(null)
+  const [riskWarnings, setRiskWarnings] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
 
   const entryRef = entryType === 'limit' ? parseFloat(limitPrice) : (lastPrice ?? NaN)
@@ -47,6 +48,7 @@ export function OrderTicket({
     setBusy(true)
     setError(null)
     setGrade(null)
+    setRiskWarnings([])
     try {
       const result = await api.placeOrder(sessionId, {
         kind: 'bracket',
@@ -60,7 +62,9 @@ export function OrderTicket({
       })
       if (result.rejected) setError(result.reason ?? 'rejected')
       setGrade(result.grade)
+      setRiskWarnings(result.risk?.issues.map((issue) => issue.detail) ?? [])
       await queryClient.invalidateQueries({ queryKey: ['account', sessionId] })
+      await queryClient.invalidateQueries({ queryKey: ['risk', sessionId] })
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
@@ -113,6 +117,7 @@ export function OrderTicket({
         </div>
       )}
       {error && <div className="ticket-error">{error}</div>}
+      {riskWarnings.length > 0 && <div className="risk-warnings">{riskWarnings.map((warning) => <div key={warning}>⚠ {warning}</div>)}</div>}
       <button className="btn-primary place" disabled={!ready || busy} onClick={() => void place()}>
         Place {side === 'buy' ? 'long' : 'short'} bracket
       </button>

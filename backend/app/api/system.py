@@ -25,7 +25,13 @@ def health(request: Request) -> dict:
         "keys_present": deps.get_provider(request) is not None,
         "db_path": str(cfg.db_path),
         "watchlist": cfg.watchlist,
+        "features": cfg.feature_flags,
     }
+
+
+@router.get("/features")
+def features(request: Request) -> dict:
+    return {"features": deps.get_cfg(request).feature_flags or {}}
 
 
 @router.get("/keys/status")

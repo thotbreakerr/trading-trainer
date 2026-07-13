@@ -55,6 +55,14 @@ class AppConfig:
     backup_dir: Path = PROJECT_ROOT / "backups"
     backup_keep: int = 14
     backup_min_interval_hours: float = 12.0
+    feature_flags: dict[str, bool] | None = None
+    risk_mode: str = "coach"
+    max_risk_per_trade_pct: float = 1.0
+    max_daily_loss_r: float = 3.0
+    max_trades_per_day: int = 5
+    cooldown_minutes: int = 5
+    max_open_risk_pct: float = 2.0
+    require_protective_stop: bool = True
 
 
 def default_db_path() -> Path:
@@ -66,6 +74,8 @@ def load_app_config(path: Path | None = None) -> AppConfig:
     path = path or (CONFIG_DIR / "app_config.yaml")
     raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     db = raw.get("db_path")
+    features = raw.get("features") or {}
+    risk = raw.get("risk_guardrails") or {}
     return AppConfig(
         watchlist=[str(s).upper() for s in raw.get("watchlist", [])],
         starting_balance=float(raw.get("starting_balance", 30_000.0)),
@@ -83,6 +93,17 @@ def load_app_config(path: Path | None = None) -> AppConfig:
         else PROJECT_ROOT / "backups",
         backup_keep=int(raw.get("backup_keep", 14)),
         backup_min_interval_hours=float(raw.get("backup_min_interval_hours", 12)),
+        feature_flags={
+            key: bool(features.get(key, True))
+            for key in ("rich_journal", "scenario_explorer", "adaptive_workouts", "predictions", "risk_coach")
+        },
+        risk_mode=str(risk.get("mode", "coach")),
+        max_risk_per_trade_pct=float(risk.get("max_risk_per_trade_pct", 1.0)),
+        max_daily_loss_r=float(risk.get("max_daily_loss_r", 3.0)),
+        max_trades_per_day=int(risk.get("max_trades_per_day", 5)),
+        cooldown_minutes=int(risk.get("cooldown_minutes", 5)),
+        max_open_risk_pct=float(risk.get("max_open_risk_pct", 2.0)),
+        require_protective_stop=bool(risk.get("require_protective_stop", True)),
     )
 
 

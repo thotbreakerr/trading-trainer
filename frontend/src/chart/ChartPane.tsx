@@ -6,13 +6,15 @@ import {
   HistogramSeries,
   LineSeries,
   createChart,
+  createSeriesMarkers,
   type IChartApi,
   type ISeriesApi,
   type ISeriesPrimitive,
+  type ISeriesMarkersPluginApi,
   type Time,
   type UTCTimestamp,
 } from 'lightweight-charts'
-import type { ApiBar, DayMeta, Point } from '../lib/types'
+import type { ApiBar, DayMeta, Point, TradeMarker } from '../lib/types'
 import { SessionShading } from './sessionShading'
 
 export interface Overlays {
@@ -81,6 +83,7 @@ export function ChartPane({
   fitKey,
   overlays,
   follow = false,
+  markers = [],
 }: {
   bars: ApiBar[]
   days: DayMeta[]
@@ -90,6 +93,7 @@ export function ChartPane({
   overlays?: Overlays
   /** Keep the latest bar in view as new bars arrive (replay while playing). */
   follow?: boolean
+  markers?: TradeMarker[]
 }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -101,6 +105,7 @@ export function ChartPane({
     ema20: null,
   })
   const shadingRef = useRef<SessionShading | null>(null)
+  const markersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null)
   const lastFitKey = useRef<string>('')
   const appliedRef = useRef<{ fitKey: string; bars: ApiBar[]; overlays?: Overlays } | null>(null)
 
@@ -156,6 +161,7 @@ export function ChartPane({
     }
     const shading = new SessionShading()
     candles.attachPrimitive(shading as unknown as ISeriesPrimitive<Time>)
+    markersRef.current = createSeriesMarkers(candles, [])
     // Volume pane gets ~1/5 of the height; stretch factors are relative so
     // this stays valid across resizes (unlike a pixel setHeight at mount,
     // which pins the pane before the chart has measured its container).
@@ -171,6 +177,7 @@ export function ChartPane({
     return () => {
       chart.remove()
       chartRef.current = null
+      markersRef.current = null
     }
   }, [])
 
@@ -273,6 +280,18 @@ export function ChartPane({
       fitAnchor()
     }
   }, [bars, days, fitKey, overlays, follow])
+
+  useEffect(() => {
+    markersRef.current?.setMarkers(
+      markers.map((marker) => ({
+        time: marker.t as UTCTimestamp,
+        position: marker.kind === 'entry' ? 'belowBar' : 'aboveBar',
+        shape: marker.kind === 'entry' ? 'arrowUp' : 'arrowDown',
+        color: marker.kind === 'entry' ? '#2962ff' : '#f0b90b',
+        text: `${marker.label} ${marker.price.toFixed(2)}`,
+      })),
+    )
+  }, [markers])
 
   return (
     <div className="chart-host">

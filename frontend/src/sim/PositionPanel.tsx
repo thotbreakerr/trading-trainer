@@ -18,6 +18,12 @@ export function PositionPanel({
     staleTime: 0,
   })
   const account = accountQ.data
+  const riskQ = useQuery({
+    queryKey: ['risk', sessionId, stepCount],
+    queryFn: () => api.riskStatus(sessionId),
+    staleTime: 0,
+  })
+  const risk = riskQ.data
   const cancel = async (orderId: number) => {
     await api.cancelOrder(sessionId, orderId)
     await queryClient.invalidateQueries({ queryKey: ['account', sessionId] })
@@ -33,6 +39,12 @@ export function PositionPanel({
           <span className="muted">BP ${Math.max(account.buying_power_left, 0).toLocaleString()}</span>
         </div>
       )}
+      {risk && <div className="risk-panel">
+        <div className="risk-head"><strong>Risk coach</strong><span className={`risk-mode ${risk.policy.mode}`}>{risk.policy.mode}</span></div>
+        <div className="risk-usage"><span>P/L {risk.usage.closed_r.toFixed(2)}R / -{risk.policy.max_daily_loss_r}R</span><span>Trades {risk.usage.trades}/{risk.policy.max_trades_per_day}</span><span>Open risk {(risk.usage.open_risk_pct ?? 0).toFixed(2)}%/{risk.policy.max_open_risk_pct}%</span></div>
+        {risk.usage.cooldown_remaining_minutes > 0 && <span className="risk-cooldown">Cooldown {risk.usage.cooldown_remaining_minutes}m</span>}
+        {risk.events.slice(0, 2).map((event, i) => <span key={`${event.ts}:${i}`} className={`risk-event ${event.disposition}`}>{event.disposition === 'blocked' ? '⛔' : '⚠'} {event.detail}</span>)}
+      </div>}
       {account?.positions.map((p) => (
         <div key={p.symbol} className={`pos-row ${p.unrealized >= 0 ? 'up' : 'down'}`}>
           <strong>

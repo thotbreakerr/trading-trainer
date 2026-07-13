@@ -26,13 +26,41 @@ def user_db(tmp_path):
         "INSERT INTO orders (mode, day, symbol, side, type, qty, status, placed_ts)"
         " VALUES ('practice','2026-06-16','SPY','buy','market',10,'filled','2026-06-16T13:46:00Z')"
     )
-    conn.execute(
+    trade_id = conn.execute(
         "INSERT INTO trades (mode, day, symbol, direction, qty, entry_ts, entry_price, setup_id)"
         " VALUES ('practice','2026-06-16','SPY','long',10,'2026-06-16T13:46:00Z',100.5,?)",
         (setup_id,),
-    )
+    ).lastrowid
     conn.execute(
         "INSERT INTO briefings (day, created_at, snapshot) VALUES ('2026-06-16','2026-06-16T13:00:00Z','{}')"
+    )
+    conn.execute(
+        "INSERT INTO trade_reviews (trade_id, updated_at) VALUES (?, '2026-06-16T20:00:00Z')",
+        (trade_id,),
+    )
+    playlist_id = conn.execute(
+        "INSERT INTO scenario_playlists (name, created_at) VALUES ('Openers','2026-06-16T20:00:00Z')"
+    ).lastrowid
+    conn.execute(
+        "INSERT INTO scenario_playlist_items (playlist_id, scenario_id, position) VALUES (?, 's1', 0)",
+        (playlist_id,),
+    )
+    workout_id = conn.execute(
+        "INSERT INTO workout_runs (day, created_at) VALUES ('2026-06-16','2026-06-16T12:00:00Z')"
+    ).lastrowid
+    conn.execute(
+        "INSERT INTO workout_items (run_id, position, setup, reps, weakness_score, reason) "
+        "VALUES (?, 0, 'opening_range_breakout', 5, 1.0, 'Needs reps')",
+        (workout_id,),
+    )
+    conn.execute(
+        "INSERT INTO briefing_predictions "
+        "(day, symbol, direction, confidence, created_at, updated_at) VALUES "
+        "('2026-06-16','SPY','bullish',3,'2026-06-16T12:00:00Z','2026-06-16T12:00:00Z')"
+    )
+    conn.execute(
+        "INSERT INTO risk_events (mode, day, ts, rule_key, action, disposition, detail) "
+        "VALUES ('practice','2026-06-16','2026-06-16T14:00:00Z','max_trades','entry','warned','test')"
     )
     conn.execute("INSERT INTO bars_1m VALUES ('SPY','2026-06-16T13:45:00Z',1,2,0.5,1.5,1000,'rth')")
     yield SimpleNamespace(path=path, conn=conn)
@@ -116,4 +144,6 @@ def test_every_schema_table_is_classified(conn):
     rows = conn.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
     ).fetchall()
-    assert {r["name"] for r in rows} == set(backup.USER_TABLES) | set(backup.CACHE_TABLES)
+    assert {r["name"] for r in rows} == (
+        set(backup.USER_TABLES) | set(backup.CACHE_TABLES) | set(backup.META_TABLES)
+    )

@@ -12,7 +12,10 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
+from app.models import to_db_ts, utcnow
+
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
+MIGRATIONS_DIR = Path(__file__).with_name("migrations")
 
 _local = threading.local()
 
@@ -39,10 +42,56 @@ def get_conn(db_path: Path) -> sqlite3.Connection:
 
 
 def init_db(db_path: Path) -> sqlite3.Connection:
-    """Open (creating if needed) and apply the schema idempotently."""
+    """Create from the full schema, or migrate an existing database first."""
     conn = get_conn(db_path)
-    conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    existing = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' LIMIT 1"
+    ).fetchone()
+    if existing:
+        # Existing installs evolve through numbered transactions. Applying the
+        # complete schema afterward remains an idempotent drift safety net.
+        apply_migrations(conn)
+        conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+    else:
+        # Fresh installs are already at the complete schema; mark every
+        # migration represented by that schema without replaying it.
+        conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+        now = to_db_ts(utcnow())
+        conn.executemany(
+            "INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?)",
+            [(path.stem, now) for path in sorted(MIGRATIONS_DIR.glob("*.sql"))],
+        )
     return conn
+
+
+def apply_migrations(conn: sqlite3.Connection) -> list[str]:
+    """Apply numbered SQL migrations once, each in its own transaction."""
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS schema_migrations "
+        "(version TEXT PRIMARY KEY, applied_at TEXT NOT NULL) WITHOUT ROWID"
+    )
+    applied = {r["version"] for r in conn.execute("SELECT version FROM schema_migrations")}
+    installed: list[str] = []
+    for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
+        version = path.stem
+        if version in applied:
+            continue
+        script = path.read_text(encoding="utf-8")
+        applied_at = to_db_ts(utcnow()).replace("'", "''")
+        safe_version = version.replace("'", "''")
+        try:
+            conn.executescript(
+                "BEGIN IMMEDIATE;\n"
+                + script
+                + f"\nINSERT INTO schema_migrations VALUES ('{safe_version}', '{applied_at}');\n"
+                + "COMMIT;"
+            )
+        except BaseException:
+            if conn.in_transaction:
+                conn.execute("ROLLBACK")
+            raise
+        installed.append(version)
+    return installed
 
 
 def close_all() -> None:

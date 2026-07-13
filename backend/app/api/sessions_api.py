@@ -20,6 +20,7 @@ from app.marketdata.fetcher import NotTradingDay
 from app.marketdata.window import BarWindow
 from app.models import to_db_ts
 from app.providers.base import ProviderError
+from app.risk import policy as risk_policy
 from app.sim.engine import OrderError, SimEngine, SimOrder
 from app.sim.sizing import SizingError, size_position
 from app.stores import journal
@@ -232,6 +233,7 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
     symbol = session.symbols[0]
     now = session.clock.now()
     grade = None
+    risk_decision = None
     with session.lock:
         if body.kind == "bracket":
             if body.stop_price is None or body.target_price is None:
@@ -248,6 +250,21 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
                     ).shares
                 except SizingError as e:
                     raise HTTPException(status_code=400, detail=str(e))
+            risk_decision = risk_policy.evaluate_entry(
+                sim, cfg, now, qty, entry_ref, body.stop_price
+            )
+            risk_policy.record(
+                deps.get_db(request), risk_decision, session_id=session.id, mode=sim.mode,
+                day=session.day, now=now, action="bracket_entry",
+            )
+            if not risk_decision["allowed"]:
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "message": "entry blocked by session risk policy",
+                        "issues": risk_decision["issues"],
+                    },
+                )
             try:
                 orders, events = sim.place_bracket(
                     now, symbol, body.side, qty,  # type: ignore[arg-type]
@@ -268,6 +285,32 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
         else:
             if body.qty is None:
                 raise HTTPException(status_code=400, detail="qty required for non-bracket orders")
+            position = sim.positions.get(symbol)
+            closing = position is not None and (
+                (position.qty > 0 and body.side == "sell")
+                or (position.qty < 0 and body.side == "buy")
+            )
+            if not closing:
+                entry_ref = body.limit_price or body.stop_price or sim.last_close.get(symbol)
+                if entry_ref is None:
+                    raise HTTPException(
+                        status_code=409, detail="no visible price yet — step at least one bar"
+                    )
+                risk_decision = risk_policy.evaluate_entry(
+                    sim, cfg, now, body.qty, entry_ref, None
+                )
+                risk_policy.record(
+                    deps.get_db(request), risk_decision, session_id=session.id, mode=sim.mode,
+                    day=session.day, now=now, action="standalone_entry",
+                )
+                if not risk_decision["allowed"]:
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "message": "entry blocked by session risk policy",
+                            "issues": risk_decision["issues"],
+                        },
+                    )
             order, events = sim.place_order(
                 now, symbol, body.side, body.kind, body.qty,  # type: ignore[arg-type]
                 limit_price=body.limit_price, stop_price=body.stop_price,
@@ -279,7 +322,18 @@ def place_order(session_id: str, body: OrderIn, request: Request) -> dict:
         "rejected": bool(rejected),
         "reason": rejected[0].detail if rejected else None,
         "grade": grade.to_json() if grade else None,
+        "risk": risk_decision,
     }
+
+
+@router.get("/sessions/{session_id}/risk")
+def risk_status(session_id: str, request: Request) -> dict:
+    session = _get(session_id)
+    if session.sim is None:
+        raise HTTPException(status_code=409, detail="this session has no sim account")
+    return risk_policy.status(
+        deps.get_db(request), session.sim, deps.get_cfg(request), session.clock.now(), session.id
+    )
 
 
 def _grade_placement(

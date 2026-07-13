@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import type { DrillSetupInfo, LessonListItem } from '../lib/types'
+import type { DrillSetupInfo, LessonListItem, WorkoutItem } from '../lib/types'
 import { DrillTakeover } from '../drill/DrillTakeover'
 import { LessonTakeover } from '../lesson/LessonTakeover'
+import { ScenarioExplorer } from '../scenario/ScenarioExplorer'
+import { ScenarioTakeover } from '../scenario/ScenarioTakeover'
+import { DailyWorkoutCard } from '../workout/DailyWorkout'
+import { useQueryClient } from '@tanstack/react-query'
 
 const STATUS_LABEL: Record<LessonListItem['status'], string> = {
   available: 'Start',
@@ -52,11 +56,13 @@ function DrillCard({
 }
 
 export function LearnTab() {
+  const queryClient = useQueryClient()
   const lessonsQ = useQuery({ queryKey: ['lessons'], queryFn: api.lessons })
   const drillQ = useQuery({ queryKey: ['drillSetups'], queryFn: api.drillSetups })
   const [active, setActive] = useState<number | null>(null)
-  const [drill, setDrill] = useState<{ key: string; label: string } | null>(null)
+  const [drill, setDrill] = useState<{ key: string; label: string; count?: number; workout?: { runId: number; itemId: number } } | null>(null)
   const [count, setCount] = useState(5)
+  const [scenarioId, setScenarioId] = useState<string | null>(null)
 
   if (active != null) {
     return <LessonTakeover moduleNumber={active} onExit={() => setActive(null)} />
@@ -66,10 +72,14 @@ export function LearnTab() {
       <DrillTakeover
         setupKey={drill.key}
         label={drill.label}
-        count={count}
+        count={drill.count ?? count}
         onExit={() => setDrill(null)}
+        onComplete={drill.workout ? () => void api.completeWorkoutItem(drill.workout!.runId, drill.workout!.itemId).then(() => queryClient.invalidateQueries({ queryKey: ['dailyWorkout'] })) : undefined}
       />
     )
+  }
+  if (scenarioId != null) {
+    return <ScenarioTakeover id={scenarioId} onExit={() => setScenarioId(null)} />
   }
 
   const modules = lessonsQ.data?.modules ?? []
@@ -80,6 +90,7 @@ export function LearnTab() {
       <p style={{ color: 'var(--muted)' }}>
         Ten modules, unlocked in order, every one taught on real historical market days.
       </p>
+      <DailyWorkoutCard onStart={(item: WorkoutItem, runId: number) => setDrill({ key: item.setup, label: item.label, count: item.reps, workout: { runId, itemId: item.id } })} />
       {lessonsQ.isError && <p className="banner">⚠ {String(lessonsQ.error)}</p>}
       <div className="module-list">
         {modules.map((m) => {
@@ -144,6 +155,7 @@ export function LearnTab() {
           </div>
         </>
       )}
+      <ScenarioExplorer onStart={(scenario) => setScenarioId(scenario.id)} />
     </div>
   )
 }

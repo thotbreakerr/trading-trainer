@@ -7,6 +7,21 @@ data** — structured lessons replayed on real historical days, plus a daily coa
 that watches today's (15-min-delayed) market, calls out textbook setups, and
 grades your decisions. Full product spec: [daytrading_trainer_final_plan.md](daytrading_trainer_final_plan.md).
 
+## Training workflows
+
+- **Adaptive daily workout** — three resumable blocks selected from weak grades,
+  missed opportunities, review mistakes, repetition scarcity, and recency.
+- **Pre-market commitments** — record bias, key level, expected setup,
+  invalidation, and confidence before the open; plans lock at the bell and are
+  scored for direction, level interaction, planning quality, and calibration.
+- **Decision journal** — filter trades, add thesis/notes/emotion/tags/mistakes,
+  and review bar-derived MFE, MAE, available R, efficiency, duration, and chart
+  entry/exit markers.
+- **Scenario explorer** — filter detector-indexed cached history, run blind
+  replays, reveal outcomes afterward, and save reusable playlists.
+- **Session risk coach** — visible per-trade/open-risk, loss, trade-count,
+  cooldown, and protective-stop rules in coaching or enforcement mode.
+
 ## Running
 
 One command from a fresh clone — creates the venv, installs dependencies,
@@ -52,7 +67,8 @@ cd backend
 
 No settings screen by design — edit YAML, restart:
 
-- `config/app_config.yaml` — watchlist, starting balance, DB path, backups, escape hatches
+- `config/app_config.yaml` — watchlist, starting balance, DB path, backups,
+  feature flags, risk guardrails, and escape hatches
 - `config/rules_config.yaml` — detector thresholds and grading parameters
 - `%LOCALAPPDATA%\trading-trainer\.env` — Alpaca key/secret (written by the
   first-run flow; lives **outside** the OneDrive-synced project folder). A
@@ -64,10 +80,20 @@ The SQLite database lives at `%LOCALAPPDATA%\trading-trainer\trainer.db` by
 default — deliberately **outside** OneDrive (WAL + cloud sync is a corruption
 risk). Market-data cache is rebuildable; progress/trades are not.
 
+Schema changes use numbered, transactional migrations in
+`backend/app/migrations`. The complete `schema.sql` still defines a fresh
+install; startup records applied versions in `schema_migrations`.
+
+Risk guardrails default to `mode: coach`, which warns and records the event but
+allows the order. Set `risk_guardrails.mode: enforce` to block violations. All
+limits and feature flags are read from YAML on restart; the UI intentionally
+shows them read-only.
+
 ### Backups
 
 On startup (at most every `backup_min_interval_hours`), the app snapshots the
-non-rebuildable tables (progress, setups, orders, trades, briefings) to
+non-rebuildable user tables (curriculum, trading, reviews, playlists, workouts,
+predictions, and risk events) to
 `backups/trainer-<timestamp>.db`, keeping the newest `backup_keep` files
 (0 disables). Cold single-file copies are safe in OneDrive — it's the live
 WAL database that isn't — so the synced folder doubles as off-machine backup.

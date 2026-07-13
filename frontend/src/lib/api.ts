@@ -3,13 +3,17 @@ import type {
   BackfillProgressInfo,
   BarsResponse,
   BriefingData,
+  BriefingPrediction,
   CompleteResponse,
   DrillNextResponse,
   DrillResolution,
   DrillRunInfo,
   DrillSetupInfo,
   DrillSetupsResponse,
+  DailyWorkout,
   JournalTrade,
+  JournalTradeDetail,
+  TradeReview,
   KeysStatus,
   LessonDetail,
   LessonListItem,
@@ -17,9 +21,13 @@ import type {
   OrderRequest,
   OrderResult,
   RecapData,
+  RiskStatus,
   SessionBarsResponse,
   SessionInfo,
   SessionTrade,
+  ScenarioPlaylist,
+  ScenarioResolution,
+  ScenarioSummary,
   SizingResult,
   StepResponse,
   SymbolsResponse,
@@ -48,6 +56,16 @@ async function postJson<T>(url: string, body?: unknown): Promise<T> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  if (!r.ok) throw new Error(await errorText(r))
+  return r.json()
+}
+
+async function patchJson<T>(url: string, body: unknown): Promise<T> {
+  const r = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   })
   if (!r.ok) throw new Error(await errorText(r))
   return r.json()
@@ -86,13 +104,30 @@ export const api = {
   cancelOrder: (sessionId: string, orderId: number) =>
     fetch(`/api/sessions/${sessionId}/orders/${orderId}`, { method: 'DELETE' }),
   account: (sessionId: string) => getJson<AccountInfo>(`/api/sessions/${sessionId}/account`),
+  riskStatus: (sessionId: string) => getJson<RiskStatus>(`/api/sessions/${sessionId}/risk`),
   sessionTrades: (sessionId: string) =>
     getJson<{ trades: SessionTrade[] }>(`/api/sessions/${sessionId}/trades`),
   sizing: (body: { equity: number; entry: number; stop: number; risk_pct?: number }) =>
     postJson<SizingResult>('/api/sizing', body),
   marketDayState: () => getJson<MarketDayState>('/api/marketday/state'),
-  journalTrades: (mode?: string) =>
-    getJson<{ trades: JournalTrade[] }>(`/api/journal/trades${mode ? `?mode=${mode}` : ''}`),
+  journalTrades: (filters?: {
+    mode?: string
+    symbol?: string
+    grade?: string
+    setup?: string
+    tag?: string
+    reviewed?: boolean
+  }) => {
+    const params = new URLSearchParams()
+    Object.entries(filters ?? {}).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') params.set(key, String(value))
+    })
+    const query = params.toString()
+    return getJson<{ trades: JournalTrade[] }>(`/api/journal/trades${query ? `?${query}` : ''}`)
+  },
+  journalTrade: (id: number) => getJson<JournalTradeDetail>(`/api/journal/trades/${id}`),
+  saveTradeReview: (id: number, review: Omit<TradeReview, 'updated_at'>) =>
+    patchJson<{ trade_id: number; review: TradeReview }>(`/api/journal/trades/${id}/review`, review),
   journalStats: (mode?: string) =>
     getJson<TrajectoryData>(`/api/journal/stats${mode ? `?mode=${mode}` : ''}`),
   actOnCallout: (id: string) =>
@@ -101,6 +136,17 @@ export const api = {
     ),
   briefing: (refresh = false) =>
     getJson<BriefingData>(`/api/briefing${refresh ? '?refresh=true' : ''}`),
+  predictions: (day: string) =>
+    getJson<import('./types').PredictionsResponse>(`/api/briefing/predictions?day=${day}`),
+  savePrediction: (body: {
+    day: string
+    symbol: string
+    direction: string
+    key_level: number | null
+    setup: string
+    invalidation: string
+    confidence: number
+  }) => postJson<BriefingPrediction>('/api/briefing/predictions', body),
   recap: (day?: string) => getJson<RecapData>(`/api/recap${day ? `?day=${day}` : ''}`),
   drillSetups: () => getJson<DrillSetupsResponse>('/api/drill/setups'),
   drillStartRun: (setup: string, count: number) =>
@@ -109,4 +155,37 @@ export const api = {
   drillResolve: (attemptId: string) =>
     postJson<DrillResolution>(`/api/drill/attempts/${attemptId}/resolve`),
   drillStats: () => getJson<{ setups: DrillSetupInfo[] }>('/api/drill/stats'),
+  scenarios: (filters: {
+    setup?: string
+    direction?: string
+    symbol?: string
+    grade?: string
+    blind?: boolean
+    refresh?: boolean
+  }) => {
+    const params = new URLSearchParams()
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') params.set(key, String(value))
+    })
+    return getJson<{
+      scenarios: ScenarioSummary[]
+      total: number
+      setups: { key: string; label: string }[]
+      index: { indexed: number; total: number }
+    }>(`/api/scenarios?${params}`)
+  },
+  startScenario: (id: string) =>
+    postJson<{ scenario_id: string; session: SessionInfo }>(`/api/scenarios/${id}/session`),
+  scenarioResolution: (id: string) =>
+    getJson<ScenarioResolution>(`/api/scenarios/${id}/resolution`),
+  scenarioPlaylists: () => getJson<{ playlists: ScenarioPlaylist[] }>('/api/scenario-playlists'),
+  scenarioPlaylist: (id: number, blind: boolean) =>
+    getJson<{ playlist: ScenarioPlaylist; scenarios: ScenarioSummary[] }>(`/api/scenario-playlists/${id}?blind=${blind}`),
+  createScenarioPlaylist: (name: string) =>
+    postJson<ScenarioPlaylist>('/api/scenario-playlists', { name }),
+  addScenarioToPlaylist: (playlistId: number, scenarioId: string) =>
+    postJson(`/api/scenario-playlists/${playlistId}/items/${scenarioId}`),
+  dailyWorkout: () => postJson<DailyWorkout>('/api/workouts/daily'),
+  completeWorkoutItem: (runId: number, itemId: number) =>
+    postJson<{ run_complete: boolean }>(`/api/workouts/${runId}/items/${itemId}/complete`),
 }

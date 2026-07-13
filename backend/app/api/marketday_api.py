@@ -17,6 +17,7 @@ from app.marketday.briefing import build_briefing, get_snapshot, save_snapshot
 from app.marketday.poller import MarketDayPoller
 from app.marketday.recap import build_recap
 from app.models import ET, utcnow
+from app.risk import policy as risk_policy
 from app.sim.sizing import SizingError, size_position
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,7 @@ def marketday_state(request: Request) -> dict:
         "session": None,
         "callouts": [],
         "account": None,
+        "risk": None,
     }
     session = poller.session
     if session is not None and poller.callouts is not None:
@@ -69,6 +71,9 @@ def marketday_state(request: Request) -> dict:
                 ],
                 "flattened": sim.flattened,
             }
+            payload["risk"] = risk_policy.status(
+                conn, sim, deps.get_cfg(request), clock, session.id
+            )
     return payload
 
 
@@ -122,6 +127,19 @@ def act_on_callout(callout_id: str, request: Request, body: ActIn | None = None)
         ).shares
     except SizingError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    risk_decision = risk_policy.evaluate_entry(sim, cfg, clock, qty, entry_ref, sig.stop)
+    risk_policy.record(
+        conn, risk_decision, session_id=session.id, mode=sim.mode,
+        day=session.day, now=clock, action="marketday_callout",
+    )
+    if not risk_decision["allowed"]:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "entry blocked by session risk policy",
+                "issues": risk_decision["issues"],
+            },
+        )
     with session.lock:
         sim.pending_grades[sig.symbol] = user_grade.tier  # -> journal row
         orders, events = sim.place_bracket(
@@ -138,6 +156,7 @@ def act_on_callout(callout_id: str, request: Request, body: ActIn | None = None)
         "qty": qty,
         "grade": user_grade.to_json(),
         "callout": callout.to_json(clock),
+        "risk": risk_decision,
     }
 
 

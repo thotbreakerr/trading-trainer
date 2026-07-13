@@ -26,16 +26,19 @@ export function DrillTakeover({
   label,
   count,
   onExit,
+  onComplete,
 }: {
   setupKey: string
   label: string
   count: number
   onExit: () => void
+  onComplete?: () => void
 }) {
   const [tf, setTf] = useState<Timeframe>('5m')
   const drill = useDrillRun(setupKey, count, tf)
   const { replay } = drill
   const started = useRef(false)
+  const completionSent = useRef(false)
 
   useEffect(() => {
     if (started.current) return
@@ -43,6 +46,13 @@ export function DrillTakeover({
     void drill.startRun()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (drill.phase === 'summary' && !completionSent.current) {
+      completionSent.current = true
+      onComplete?.()
+    }
+  }, [drill.phase, onComplete])
 
   const sessionQ = useQuery({
     queryKey: ['sessionBars', replay.session?.id ?? 'none', tf],

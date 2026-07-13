@@ -13,7 +13,19 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app import backup, db
-from app.api import data, deps, drill_api, journal_api, lessons_api, marketday_api, sessions_api, system
+from app.api import (
+    data,
+    deps,
+    drill_api,
+    journal_api,
+    lessons_api,
+    marketday_api,
+    predictions_api,
+    scenarios_api,
+    sessions_api,
+    system,
+    workouts_api,
+)
 from app.config import PROJECT_ROOT, load_app_config, load_creds, load_rules_config, migrate_legacy_env
 from app.lessons.loader import load_lessons, validate_demo_days
 from app.marketdata.calendar import MarketCalendar
@@ -89,8 +101,11 @@ def create_app() -> FastAPI:
     app.include_router(sessions_api.router, prefix="/api", tags=["sessions"])
     app.include_router(lessons_api.router, prefix="/api", tags=["lessons"])
     app.include_router(marketday_api.router, prefix="/api", tags=["marketday"])
+    app.include_router(predictions_api.router, prefix="/api", tags=["predictions"])
     app.include_router(journal_api.router, prefix="/api", tags=["journal"])
     app.include_router(drill_api.router, prefix="/api", tags=["drill"])
+    app.include_router(scenarios_api.router, prefix="/api", tags=["scenarios"])
+    app.include_router(workouts_api.router, prefix="/api", tags=["workouts"])
     # Built UI (run.ps1 builds it). Registered routes (/api/*, /docs) win over
     # the mount; without dist the API still serves — Vite covers the UI in dev.
     if (FRONTEND_DIST / "index.html").is_file():
